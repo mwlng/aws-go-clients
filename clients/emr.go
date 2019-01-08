@@ -24,7 +24,7 @@ func (emrCli *EMRClient) ListClusters(states []*string) *[]*emr.ClusterSummary {
     }
     resp, err := emrCli.cli.ListClusters(input)
     if err != nil {
-        handleError(err)
+        emrCli.handleError(err)
     }
     clusters := resp.Clusters
     for resp.Marker != nil {
@@ -44,7 +44,7 @@ func (emrCli *EMRClient) DescribeCluster(id *string) *emr.DescribeClusterOutput 
     }
     resp, err := emrCli.cli.DescribeCluster(input)
     if err != nil {
-        handleError(err)
+        emrCli.handleError(err)
     }
     return resp
 }

@@ -8,33 +8,104 @@ import (
     "github.com/aws/aws-sdk-go/aws/awserr"
 )
 
-type CfnClient struct {
+type CFNClient struct {
     cli *cloudformation.CloudFormation
 }
 
-func NewCloudformation(sess *session.Session) *CfnClient {
+func NewCloudformation(sess *session.Session) *CFNClient {
     client := cloudformation.New(sess)
 
-    return &CfnClient{ cli: client }
+    return &CFNClient{ cli: client }
 }
 
-func (cfn *CfnClient) ListStacks(input *cloudformation.ListStacksInput) *cloudformation.ListStacksOutput {
+func (cfn *CFNClient) ListStacks() *[]*cloudformation.StackSummary {
+    input := &cloudformation.ListStacksInput{}
     resp, err := cfn.cli.ListStacks(input)
     if err != nil {
-       handleError(err)
+       cfn.handleError(err)
     }
-    return resp
+    summaries := resp.StackSummaries
+    for resp.NextToken != nil {
+        input = &cloudformation.ListStacksInput{ NextToken: resp.NextToken }
+        resp, err = cfn.cli.ListStacks(input)
+        if err != nil {
+            cfn.handleError(err)
+        }
+        summaries = append(summaries, resp.StackSummaries...)
+    }
+    return &summaries
 }
 
-func (cfn *CfnClient) ListStackReources(input *cloudformation.ListStackResourcesInput) *cloudformation.ListStackResourcesOutput {
+func (cfn *CFNClient) GetTemplate(stackName *string) *string {
+    input := &cloudformation.GetTemplateInput{ 
+        StackName: stackName,
+    }
+    resp, err := cfn.cli.GetTemplate(input)
+    if err != nil {
+       cfn.handleError(err)
+    }
+    return resp.TemplateBody
+}
+
+func (cfn *CFNClient) ListStackResources(stackName *string) *[]*cloudformation.StackResourceSummary {
+    input := &cloudformation.ListStackResourcesInput{
+        StackName: stackName,
+    }
     resp, err := cfn.cli.ListStackResources(input)
     if err != nil {
-        handleError(err)
+        cfn.handleError(err)
     }
-    return resp
+    summaries := resp.StackResourceSummaries
+    for resp.NextToken != nil {
+        input = &cloudformation.ListStackResourcesInput{ NextToken: resp.NextToken }
+        resp, err = cfn.cli.ListStackResources(input)
+        if err != nil {
+            cfn.handleError(err)
+        }
+        summaries = append(summaries, resp.StackResourceSummaries...)
+    }
+    return &summaries
 }
 
-func handleError(err error) {
+func (cfn *CFNClient) ListChangeSets(stackName *string) *[]*cloudformation.ChangeSetSummary {
+    input := &cloudformation.ListChangeSetsInput{
+        StackName: stackName,
+    }
+    resp, err := cfn.cli.ListChangeSets(input)
+    if err != nil {
+        cfn.handleError(err)
+    }
+    summaries := resp.Summaries
+    for resp.NextToken != nil {
+        input = &cloudformation.ListChangeSetsInput{ NextToken: resp.NextToken }
+        resp, err = cfn.cli.ListChangeSets(input)
+        if err != nil {
+            cfn.handleError(err)
+        }
+        summaries = append(summaries, resp.Summaries...)
+    }
+    return &summaries
+}
+
+func (cfn *CFNClient) ListStackSets() *[]*cloudformation.StackSetSummary  {
+    input := &cloudformation.ListStackSetsInput{}
+    resp, err := cfn.cli.ListStackSets(input)
+    if err != nil {
+        cfn.handleError(err)
+    }
+    summaries := resp.Summaries
+    for resp.NextToken != nil {
+        input = &cloudformation.ListStackSetsInput{ NextToken: resp.NextToken }
+        resp, err = cfn.cli.ListStackSets(input)
+        if err != nil {
+            cfn.handleError(err)
+        }
+        summaries = append(summaries, resp.Summaries...)
+    }
+    return &summaries
+}
+
+func (cfn *CFNClient) handleError(err error) {
     if aerr, ok := err.(awserr.Error); ok {
         switch aerr.Code() {
         default:

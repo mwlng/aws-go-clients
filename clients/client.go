@@ -24,7 +24,7 @@ func NewClient(service string, sess *session.Session) interface{} {
         case "ecr":
             client = &ECRClient{ cli: ecr.New(sess) }
         case "cloudformation":
-            client = &CfnClient{ cli: cloudformation.New(sess) }
+            client = &CFNClient{ cli: cloudformation.New(sess) }
         default:
             client = nil
     }
