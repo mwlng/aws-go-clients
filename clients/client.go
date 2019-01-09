@@ -8,6 +8,7 @@ import (
     "github.com/aws/aws-sdk-go/service/ecr"
     "github.com/aws/aws-sdk-go/service/s3"
     "github.com/aws/aws-sdk-go/service/cloudformation"
+    "github.com/aws/aws-sdk-go/service/route53"
 )
 
 func NewClient(service string, sess *session.Session) interface{} {
@@ -25,6 +26,8 @@ func NewClient(service string, sess *session.Session) interface{} {
             client = &ECRClient{ cli: ecr.New(sess) }
         case "cloudformation":
             client = &CFNClient{ cli: cloudformation.New(sess) }
+        case "route53":
+            client = &R53Client{ cli: route53.New(sess) }
         default:
             client = nil
     }
