@@ -25,7 +25,7 @@ func (r53Cli *R53Client) ListHostedZones() *[]*route53.HostedZone {
         r53Cli.handleError(err)
     }
     zones := resp.HostedZones
-    for resp.Marker != nil {
+    for *resp.IsTruncated {
         input = &route53.ListHostedZonesInput{ Marker: resp.Marker }
         resp, err = r53Cli.cli.ListHostedZones(input)
         if err != nil {
@@ -34,6 +34,27 @@ func (r53Cli *R53Client) ListHostedZones() *[]*route53.HostedZone {
         zones = append(zones, resp.HostedZones...)
     }
     return &zones
+}
+
+func (r53Cli *R53Client) ListResourceRecordSets(hostedZoneId *string) *[]*route53.ResourceRecordSet {
+    input := &route53.ListResourceRecordSetsInput{ HostedZoneId: hostedZoneId, }
+    resp, err := r53Cli.cli.ListResourceRecordSets(input)
+    if err != nil {
+        r53Cli.handleError(err)
+    }
+    records := resp.ResourceRecordSets
+    for *resp.IsTruncated {
+        input = &route53.ListResourceRecordSetsInput{ 
+            HostedZoneId: hostedZoneId,
+            StartRecordName: resp.NextRecordName,
+        }
+        resp, err = r53Cli.cli.ListResourceRecordSets(input)
+        if err != nil {
+            r53Cli.handleError(err)
+        }
+        records = append(records, resp.ResourceRecordSets...)
+    }
+    return &records
 }
 
 func (r53Cli *R53Client) ListGeoLocations() *[]*route53.GeoLocationDetails {
