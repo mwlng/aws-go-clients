@@ -19,40 +19,62 @@ func NewEC2(sess *session.Session) *EC2Client {
     return &EC2Client{ cli: client }
 }
 
-func (ec2cli *EC2Client) ListAllVpcs() []*ec2.Vpc {
+func (ec2Cli *EC2Client) ListAllVpcs() *[]*ec2.Vpc {
     input := &ec2.DescribeVpcsInput{} 
-    resp, err := ec2cli.cli.DescribeVpcs(input)
+    resp, err := ec2Cli.cli.DescribeVpcs(input)
     if err != nil {
-        fmt.Println("Got error:")
-        fmt.Println(err.Error())
+        ec2Cli.handleError(err)
     }
 
-    return resp.Vpcs
+    return &resp.Vpcs
 }
 
-func (ec2cli *EC2Client) ListAllAvailbleZones() *ec2.DescribeAvailabilityZonesOutput {
+func (ec2Cli *EC2Client) ListAllAvailbleZones() *ec2.DescribeAvailabilityZonesOutput {
     return nil
 }
 
-func (ec2cli *EC2Client) ListAllSubnets() *ec2.DescribeSubnetsOutput  {
+func (ec2Cli *EC2Client) ListAllSubnets() *ec2.DescribeSubnetsOutput  {
     return  nil
 }
 
-func (ec2cli *EC2Client) ListAMIsByOwner(owner string) *ec2.DescribeImagesOutput {
+func (ec2Cli *EC2Client) ListAllInstances() *[]*ec2.Instance {
+    input := &ec2.DescribeInstancesInput{} 
+    resp, err := ec2Cli.cli.DescribeInstances(input)
+    if err != nil {
+        ec2Cli.handleError(err)
+    }
+    reservations := resp.Reservations
+    for resp.NextToken != nil {
+        input = &ec2.DescribeInstancesInput{ NextToken: resp.NextToken }
+        resp, err = ec2Cli.cli.DescribeInstances(input)
+        if err != nil {
+            ec2Cli.handleError(err)
+        }
+        reservations = append(reservations, resp.Reservations...)
+    }
+    
+    var instances []*ec2.Instance
+    for _, r := range(reservations) {
+        instances = append(instances, r.Instances...)
+    }
+    return &instances
+}
+
+func (ec2Cli *EC2Client) ListAMIsByOwner(owner string) *ec2.DescribeImagesOutput {
     input := &ec2.DescribeImagesInput{
         Owners: []*string{
             aws.String(owner),
         },
     }
-    resp, err := ec2cli.cli.DescribeImages(input)
+    resp, err := ec2Cli.cli.DescribeImages(input)
     if err != nil {
-        ec2cli.handleError(err)
+        ec2Cli.handleError(err)
     }
 
     return resp
 }
 
-func (ec2cli *EC2Client) handleError(err error) {
+func (ec2Cli *EC2Client) handleError(err error) {
     if aerr, ok := err.(awserr.Error); ok {
         switch aerr.Code() {
         default:
