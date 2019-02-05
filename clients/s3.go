@@ -3,6 +3,7 @@ package clients
 import (
     "fmt"
 
+    "github.com/aws/aws-sdk-go/aws"
     "github.com/aws/aws-sdk-go/aws/session"
     "github.com/aws/aws-sdk-go/aws/awserr"
     "github.com/aws/aws-sdk-go/service/s3"
@@ -33,6 +34,19 @@ func (s3cli *S3Client) GetBucketPolicy(input *s3.GetBucketPolicyInput) *s3.GetBu
         s3cli.handleError(err)
     }
 
+    return resp
+}
+
+func (s3cli *S3Client) HeadObject(bucket *string, key *string) *s3.HeadObjectOutput {
+    input := &s3.HeadObjectInput{
+        Bucket: bucket,
+        Key:    key,
+    }
+    resp, err := s3cli.cli.HeadObject(input)
+    if err != nil {
+        s3cli.handleError(err)
+        return nil
+    }
     return resp
 }
 
@@ -85,6 +99,21 @@ func (s3Cli *S3Client) PutObjectAcl(bucket *string, key *string, acl *string) {
         ACL:    acl,              
     }
     _, err := s3Cli.cli.PutObjectAcl(input)
+    if err != nil {
+        s3Cli.handleError(err)
+    }
+    return
+}
+
+func (s3Cli *S3Client) CopyObject(srcBucket *string, tgtBucket *string, key *string) {
+    input := &s3.CopyObjectInput{
+        ACL:        aws.String("bucket-owner-full-control"),
+        CopySource: aws.String(fmt.Sprintf("/%s/%s", *srcBucket, *key)),
+        Bucket:     tgtBucket,
+        Key:        key,
+    }
+
+    _, err := s3Cli.cli.CopyObject(input)
     if err != nil {
         s3Cli.handleError(err)
     }
