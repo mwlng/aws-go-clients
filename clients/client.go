@@ -11,6 +11,7 @@ import (
     "github.com/aws/aws-sdk-go/service/iam"
     "github.com/aws/aws-sdk-go/service/route53"
     "github.com/aws/aws-sdk-go/service/s3"
+    "github.com/aws/aws-sdk-go/service/sts"
 )
 
 func NewClient(service string, sess *session.Session) interface{} {
@@ -34,6 +35,8 @@ func NewClient(service string, sess *session.Session) interface{} {
             client = &R53Client{ cli: route53.New(sess) }
         case "s3":
             client = &S3Client{ cli: s3.New(sess) }
+        case "sts":
+            client = &STSClient{ cli: sts.New(sess) }
         default:
             client = nil
     }
