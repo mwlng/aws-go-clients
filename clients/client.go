@@ -8,6 +8,7 @@ import (
     "github.com/aws/aws-sdk-go/service/ecs"
     "github.com/aws/aws-sdk-go/service/ecr"
     "github.com/aws/aws-sdk-go/service/emr"
+    "github.com/aws/aws-sdk-go/service/glue"
     "github.com/aws/aws-sdk-go/service/iam"
     "github.com/aws/aws-sdk-go/service/route53"
     "github.com/aws/aws-sdk-go/service/s3"
@@ -29,6 +30,8 @@ func NewClient(service string, sess *session.Session) interface{} {
             client = &ECRClient{ cli: ecr.New(sess) }
         case "emr":
             client = &EMRClient{ cli: emr.New(sess) }
+        case "glue":
+            client = &GlueClient{ cli: glue.New(sess) }
         case "iam":
             client = &IAMClient{ cli: iam.New(sess) }
         case "route53":
