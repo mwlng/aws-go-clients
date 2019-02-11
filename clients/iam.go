@@ -12,7 +12,7 @@ type IAMClient struct{
     cli *iam.IAM
 }
 
-func NewIam(sess *session.Session) *IAMClient {
+func NewIAM(sess *session.Session) *IAMClient {
     client := iam.New(sess)
 
     return &IAMClient{ cli: client }

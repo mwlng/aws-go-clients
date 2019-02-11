@@ -12,7 +12,7 @@ type ECRClient struct{
     cli *ecr.ECR
 }
 
-func NewEcr(sess *session.Session) *ECRClient {
+func NewECR(sess *session.Session) *ECRClient {
     client := ecr.New(sess)
 
     return &ECRClient{ cli: client }

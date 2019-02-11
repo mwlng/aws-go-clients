@@ -27,7 +27,7 @@ func (glueCli *GlueClient) ListDatabases() *[]*glue.Database {
     databases := resp.DatabaseList
     for resp.NextToken != nil {
         input = &glue.GetDatabasesInput{ NextToken: resp.NextToken }
-        resp, err := glueCli.cli.GetDatabases(input)
+        resp, err = glueCli.cli.GetDatabases(input)
         if err != nil {
             glueCli.handleError(err)
         }
@@ -50,7 +50,7 @@ func (glueCli *GlueClient) ListTables(dbName *string) *[]*glue.Table {
             DatabaseName: dbName,
             NextToken: resp.NextToken,
         }
-        resp, err := glueCli.cli.GetTables(input)
+        resp, err = glueCli.cli.GetTables(input)
         if err != nil {
             glueCli.handleError(err)
         }
@@ -66,9 +66,10 @@ func (glueCli *GlueClient) ListCrawlers() *[]*glue.Crawler {
         glueCli.handleError(err)
     }
     crawlers := resp.Crawlers
+    
     for resp.NextToken != nil {
         input = &glue.GetCrawlersInput{ NextToken: resp.NextToken }
-        resp, err := glueCli.cli.GetCrawlers(input)
+        resp, err = glueCli.cli.GetCrawlers(input)
         if err != nil {
             glueCli.handleError(err)
         }
@@ -86,7 +87,7 @@ func (glueCli *GlueClient) ListClassifiers() *[]*glue.Classifier {
     classifiers := resp.Classifiers
     for resp.NextToken != nil {
         input = &glue.GetClassifiersInput{ NextToken: resp.NextToken }
-        resp, err := glueCli.cli.GetClassifiers(input)
+        resp, err = glueCli.cli.GetClassifiers(input)
         if err != nil {
             glueCli.handleError(err)
         }

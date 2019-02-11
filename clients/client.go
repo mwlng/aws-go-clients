@@ -2,44 +2,33 @@ package clients
 
 import (
     "github.com/aws/aws-sdk-go/aws/session"
-    "github.com/aws/aws-sdk-go/service/autoscaling"
-    "github.com/aws/aws-sdk-go/service/cloudformation"
-    "github.com/aws/aws-sdk-go/service/ec2"
-    "github.com/aws/aws-sdk-go/service/ecs"
-    "github.com/aws/aws-sdk-go/service/ecr"
-    "github.com/aws/aws-sdk-go/service/emr"
-    "github.com/aws/aws-sdk-go/service/glue"
-    "github.com/aws/aws-sdk-go/service/iam"
-    "github.com/aws/aws-sdk-go/service/route53"
-    "github.com/aws/aws-sdk-go/service/s3"
-    "github.com/aws/aws-sdk-go/service/sts"
 )
 
 func NewClient(service string, sess *session.Session) interface{} {
     var client interface{}
     switch service {
         case "autoscaling":
-            client = &ASGClient{ cli: autoscaling.New(sess) }
+            client = NewASG(sess)
         case "cloudformation":
-            client = &CFNClient{ cli: cloudformation.New(sess) }
+            client = NewCloudformation(sess)
         case "ec2":
-            client = &EC2Client{ cli: ec2.New(sess) }
+            client = NewEC2(sess)
         case "ecs":
-            client = &ECSClient{ cli: ecs.New(sess) }
+            client = NewECS(sess)
         case "ecr":
-            client = &ECRClient{ cli: ecr.New(sess) }
+            client = NewECR(sess)
         case "emr":
-            client = &EMRClient{ cli: emr.New(sess) }
+            client = NewEMR(sess)
         case "glue":
-            client = &GlueClient{ cli: glue.New(sess) }
+            client = NewGlue(sess)
         case "iam":
-            client = &IAMClient{ cli: iam.New(sess) }
+            client = NewIAM(sess)
         case "route53":
-            client = &R53Client{ cli: route53.New(sess) }
+            client = NewR53(sess)
         case "s3":
-            client = &S3Client{ cli: s3.New(sess) }
+            client = NewS3(sess)
         case "sts":
-            client = &STSClient{ cli: sts.New(sess) }
+            client = NewSTS(sess)
         default:
             client = nil
     }
