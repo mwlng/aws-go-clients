@@ -97,7 +97,21 @@ func (glueCli *GlueClient) ListClassifiers() *[]*glue.Classifier {
 }
 
 func (glueCli *GlueClient) ListTriggers() *[]*glue.Trigger {
-    return nil
+    input := &glue.GetTriggersInput{}
+    resp, err := glueCli.cli.GetTriggers(input)
+    if err != nil {
+        glueCli.handleError(err)
+    }
+    triggers := resp.Triggers
+    for resp.NextToken != nil {
+        input = &glue.GetTriggersInput{ NextToken: resp.NextToken }
+        resp, err = glueCli.cli.GetTriggers(input)
+        if err != nil {
+            glueCli.handleError(err)
+        }
+        triggers = append(triggers, resp.Triggers...)
+    }
+    return &triggers
 }
 
 func (glueCli *GlueClient) handleError(err error) {
