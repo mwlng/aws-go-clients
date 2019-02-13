@@ -32,6 +32,20 @@ func (stsCli *STSClient) GetSessionCredsWithMfa(mfaSN *string, tokenCode *string
     return resp.Credentials
 }
 
+func (stsCli *STSClient) AssumeRoleWithoutMfa(roleArn *string,  duration *int64, roleSessName *string) *sts.Credentials {
+    input := &sts.AssumeRoleInput {
+        RoleArn: roleArn,
+        DurationSeconds: duration,
+        RoleSessionName: roleSessName,
+    }
+    resp, err := stsCli.cli.AssumeRole(input)
+    if err != nil {
+        stsCli.handleError(err)
+        return nil
+    }
+    return resp.Credentials
+}
+
 func (stsCli *STSClient) handleError(err error) {
     if aerr, ok := err.(awserr.Error); ok {
         switch aerr.Code() {
