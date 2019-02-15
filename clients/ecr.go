@@ -14,32 +14,58 @@ type ECRClient struct{
 
 func NewECR(sess *session.Session) *ECRClient {
     client := ecr.New(sess)
-
     return &ECRClient{ cli: client }
 }
 
-func (ecrCli *ECRClient) ListRepositories(input *ecr.DescribeRepositoriesInput) []*ecr.Repository {
+func (ecrCli *ECRClient) ListRepositories() *[]*ecr.Repository {
+    input := &ecr.DescribeRepositoriesInput{}
     resp, err := ecrCli.cli.DescribeRepositories(input)
     if err != nil {
         ecrCli.handleError(err)
     }
-    return resp.Repositories
+    repositories := resp.Repositories
+    input = &ecr.DescribeRepositoriesInput{NextToken: resp.NextToken}
+    for resp.NextToken !=nil {
+        resp, err = ecrCli.cli.DescribeRepositories(input)
+        if err != nil {
+            ecrCli.handleError(err)
+        }
+        repositories = append(repositories, resp.Repositories...)
+    }
+
+    return &repositories
 }
 
-func (ecrCli *ECRClient) ListImages(input *ecr.ListImagesInput) []*ecr.ImageIdentifier {
+func (ecrCli *ECRClient) ListImageIdsByRepository(repoName *string) *[]*ecr.ImageIdentifier {
+    input := &ecr.ListImagesInput{ RepositoryName: repoName }
     resp, err := ecrCli.cli.ListImages(input)
     if err != nil {
         ecrCli.handleError(err)
     }
-    return resp.ImageIds
+    images := resp.ImageIds
+    for resp.NextToken !=nil {
+        input = &ecr.ListImagesInput{
+            NextToken: resp.NextToken,
+            RepositoryName: repoName,
+        }
+        resp, err = ecrCli.cli.ListImages(input)
+        if err != nil {
+            ecrCli.handleError(err)
+        }
+        images = append(images, resp.ImageIds...)
+    }
+
+    return &images
 }
 
-func (ecrCli *ECRClient) DescribeImages(input *ecr.DescribeImagesInput) []*ecr.ImageDetail {
+func (ecrCli *ECRClient) DescribeImageById(id *ecr.ImageIdentifier) *ecr.ImageDetail {
+    input := &ecr.DescribeImagesInput{ ImageIds: []*ecr.ImageIdentifier{id} }
     resp, err := ecrCli.cli.DescribeImages(input)
     if err != nil {
         ecrCli.handleError(err)
+        return &ecr.ImageDetail{}
     }
-    return resp.ImageDetails
+    return resp.ImageDetails[0]
 }
 
 func (ecrCli *ECRClient) SetRepositoryPolicy(input *ecr.SetRepositoryPolicyInput) *ecr.SetRepositoryPolicyOutput {
