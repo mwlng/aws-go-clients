@@ -58,8 +58,11 @@ func (ecrCli *ECRClient) ListImageIdsByRepository(repoName *string) *[]*ecr.Imag
     return &images
 }
 
-func (ecrCli *ECRClient) DescribeImageById(id *ecr.ImageIdentifier) *ecr.ImageDetail {
-    input := &ecr.DescribeImagesInput{ ImageIds: []*ecr.ImageIdentifier{id} }
+func (ecrCli *ECRClient) DescribeImageById(repoName *string, id *ecr.ImageIdentifier) *ecr.ImageDetail {
+    input := &ecr.DescribeImagesInput{ 
+        RepositoryName: repoName,
+        ImageIds: []*ecr.ImageIdentifier{id},
+    }
     resp, err := ecrCli.cli.DescribeImages(input)
     if err != nil {
         ecrCli.handleError(err)
