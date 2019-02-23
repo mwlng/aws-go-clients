@@ -18,7 +18,7 @@ func NewECS(sess *session.Session) *ECSClient {
     return &ECSClient{ cli: client }
 }
 
-func (ecsCli *ECSClient) ListAllClusters() *[]*ecs.Cluster {
+func (ecsCli *ECSClient) ListClusters() *[]*ecs.Cluster {
     input := &ecs.ListClustersInput{} 
     resp, err := ecsCli.cli.ListClusters(input)
     if err != nil {
@@ -35,12 +35,12 @@ func (ecsCli *ECSClient) ListAllClusters() *[]*ecs.Cluster {
     }
     if len(clusterArns) <= 0 { return &[]*ecs.Cluster{} }
 
-    return ecsCli.describeClusters(&clusterArns) 
+    return ecsCli.DescribeClusters(&clusterArns) 
 }
 
-func (ecsCli *ECSClient) describeClusters(clusterArns *[]*string) *[]*ecs.Cluster {
+func (ecsCli *ECSClient) DescribeClusters(clusterArns *[]*string) *[]*ecs.Cluster {
     total := len(*clusterArns)
-    if total <= 0 { return nil }
+    if total <= 0 { return &[]*ecs.Cluster{} }
 
     i := 0
     batchStart := i * 100
@@ -73,7 +73,7 @@ func (ecsCli *ECSClient) describeClusters(clusterArns *[]*string) *[]*ecs.Cluste
     return &clusters
 }
 
-func (ecsCli *ECSClient) ListAllServices(clusterName *string) *[]*ecs.Service {
+func (ecsCli *ECSClient) ListServicesByCluster(clusterName *string) *[]*ecs.Service {
     input := &ecs.ListServicesInput{ Cluster: clusterName, } 
     resp, err := ecsCli.cli.ListServices(input)
     if err != nil {
@@ -93,12 +93,12 @@ func (ecsCli *ECSClient) ListAllServices(clusterName *string) *[]*ecs.Service {
         serviceArns = append(serviceArns, resp.ServiceArns...)
     }
     if len(serviceArns) <= 0 { return &[]*ecs.Service{} } 
-    return ecsCli.describeServices(clusterName, &serviceArns)
+    return ecsCli.DescribeServices(clusterName, &serviceArns)
 }
 
-func (ecsCli *ECSClient) describeServices(clusterName *string, serviceArns *[]*string) *[]*ecs.Service {
+func (ecsCli *ECSClient) DescribeServices(clusterName *string, serviceArns *[]*string) *[]*ecs.Service {
     total := len(*serviceArns)
-    if total <= 0 { return nil }
+    if total <= 0 { return &[]*ecs.Service{} }
 
     i := 0
     batchStart := i * 10
@@ -137,7 +137,7 @@ func (ecsCli *ECSClient) describeServices(clusterName *string, serviceArns *[]*s
     return &services
 }
 
-func (ecsCli *ECSClient) ListAllTasks(clusterName *string, serviceName *string) *[]*ecs.Task {
+func (ecsCli *ECSClient) ListTasksByService(clusterName *string, serviceName *string) *[]*ecs.Task {
     input := &ecs.ListTasksInput{ 
         Cluster: clusterName,
         ServiceName: serviceName, 
@@ -160,12 +160,12 @@ func (ecsCli *ECSClient) ListAllTasks(clusterName *string, serviceName *string) 
         taskArns = append(taskArns, resp.TaskArns...)
     }
     if len(taskArns) <=0 { return &[]*ecs.Task{} }
-    return ecsCli.describeTasks(clusterName, &taskArns)
+    return ecsCli.DescribeTasks(clusterName, &taskArns)
 }
 
-func (ecsCli *ECSClient) describeTasks(clusterName *string, taskArns *[]*string) *[]*ecs.Task {
+func (ecsCli *ECSClient) DescribeTasks(clusterName *string, taskArns *[]*string) *[]*ecs.Task {
     total := len(*taskArns)
-    if total <= 0 { return nil }
+    if total <= 0 { return &[]*ecs.Task{} }
 
     i := 0
     batchStart := i * 100
@@ -204,7 +204,7 @@ func (ecsCli *ECSClient) describeTasks(clusterName *string, taskArns *[]*string)
     return &tasks
 }
 
-func (ecsCli *ECSClient) ListAllTaskDefinitions() *[]*ecs.TaskDefinition {
+func (ecsCli *ECSClient) ListTaskDefinitions() *[]*string {
     input := &ecs.ListTaskDefinitionsInput{}
     resp, err := ecsCli.cli.ListTaskDefinitions(input)
     if err != nil {
@@ -220,10 +220,23 @@ func (ecsCli *ECSClient) ListAllTaskDefinitions() *[]*ecs.TaskDefinition {
         definitionArns = append(definitionArns, resp.TaskDefinitionArns...)
     }
 
-    if len(definitionArns) <=0 { return nil } 
+    if len(definitionArns) <=0 { return &[]*string{} } 
 
-    return nil
+    return &definitionArns
 }
+
+func (ecsCli *ECSClient) DescribeTaskDefinition(taskDefArn *string) *ecs.TaskDefinition {
+    input := &ecs.DescribeTaskDefinitionInput{
+        TaskDefinition: taskDefArn,
+    }
+
+    resp, err := ecsCli.cli.DescribeTaskDefinition(input)
+    if err != nil {
+        ecsCli.handleError(err)
+    } 
+
+    return resp.TaskDefinition
+}    
 
 func (ecsCli *ECSClient) handleError(err error) {
     if aerr, ok := err.(awserr.Error); ok {
