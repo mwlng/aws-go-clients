@@ -18,6 +18,18 @@ func NewSTS(sess *session.Session) *STSClient {
     return &STSClient{ cli: client }
 }
 
+func (stsCli *STSClient) GetSessionCredsWithoutMfa(duration *int64) *sts.Credentials {
+    input := &sts.GetSessionTokenInput {
+        DurationSeconds: duration,
+    }
+    resp, err := stsCli.cli.GetSessionToken(input)
+    if err != nil {
+        stsCli.handleError(err)
+        return nil
+    }
+    return resp.Credentials
+}
+
 func (stsCli *STSClient) GetSessionCredsWithMfa(mfaSN *string, tokenCode *string, duration *int64) *sts.Credentials {
     input := &sts.GetSessionTokenInput {
         SerialNumber: mfaSN,
@@ -37,6 +49,23 @@ func (stsCli *STSClient) AssumeRoleWithoutMfa(roleArn *string,  duration *int64,
         RoleArn: roleArn,
         DurationSeconds: duration,
         RoleSessionName: roleSessName,
+    }
+    resp, err := stsCli.cli.AssumeRole(input)
+    if err != nil {
+        stsCli.handleError(err)
+        return nil
+    }
+    return resp.Credentials
+}
+
+func (stsCli *STSClient) AssumeRoleWithMfa(roleArn *string, duration *int64, roleSessName *string,
+                                           mfaSN *string, tokenCode *string) *sts.Credentials {
+    input := &sts.AssumeRoleInput {
+        RoleArn: roleArn,
+        DurationSeconds: duration,
+        RoleSessionName: roleSessName,
+        SerialNumber: mfaSN,
+        TokenCode: tokenCode,
     }
     resp, err := stsCli.cli.AssumeRole(input)
     if err != nil {

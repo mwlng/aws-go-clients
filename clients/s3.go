@@ -105,12 +105,13 @@ func (s3Cli *S3Client) PutObjectAcl(bucket *string, key *string, acl *string) {
     return
 }
 
-func (s3Cli *S3Client) CopyObject(srcBucket *string, tgtBucket *string, key *string) {
+func (s3Cli *S3Client) CopyObject(srcBucket *string, tgtBucket *string, 
+                                  srcKey *string, tgtKey *string) {
     input := &s3.CopyObjectInput{
         ACL:        aws.String("bucket-owner-full-control"),
-        CopySource: aws.String(fmt.Sprintf("/%s/%s", *srcBucket, *key)),
+        CopySource: aws.String(fmt.Sprintf("/%s/%s", *srcBucket, *srcKey)),
         Bucket:     tgtBucket,
-        Key:        key,
+        Key:        tgtKey,
     }
 
     _, err := s3Cli.cli.CopyObject(input)

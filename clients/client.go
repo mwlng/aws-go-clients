@@ -25,6 +25,8 @@ func NewClient(service string, sess *session.Session) interface{} {
             client = NewIAM(sess)
         case "route53":
             client = NewR53(sess)
+        case "redshift":
+            client = NewRedShift(sess)
         case "s3":
             client = NewS3(sess)
         case "sts":
