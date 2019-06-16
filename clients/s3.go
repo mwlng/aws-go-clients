@@ -19,13 +19,13 @@ func NewS3(sess *session.Session) *S3Client {
 	return &S3Client{cli: client}
 }
 
-func (s3cli *S3Client) ListBuckets(input *s3.ListBucketsInput) *s3.ListBucketsOutput {
+func (s3cli *S3Client) ListBuckets(input *s3.ListBucketsInput) []*s3.Bucket {
 	resp, err := s3cli.cli.ListBuckets(input)
 	if err != nil {
 		s3cli.handleError(err)
 	}
 
-	return resp
+	return resp.Buckets
 }
 
 func (s3cli *S3Client) GetBucketPolicy(input *s3.GetBucketPolicyInput) *s3.GetBucketPolicyOutput {
