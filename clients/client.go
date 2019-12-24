@@ -7,6 +7,8 @@ import (
 func NewClient(service string, sess *session.Session) interface{} {
 	var client interface{}
 	switch service {
+	case "athena":
+		client = NewAthena(sess)
 	case "autoscaling":
 		client = NewASG(sess)
 	case "cloudformation":

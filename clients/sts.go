@@ -18,6 +18,16 @@ func NewSTS(sess *session.Session) *STSClient {
 	return &STSClient{cli: client}
 }
 
+func (stsCli *STSClient) GetCallerId() (string, string, string) {
+	input := &sts.GetCallerIdentityInput{}
+	resp, err := stsCli.cli.GetCallerIdentity(input)
+	if err != nil {
+		stsCli.handleError(err)
+		return "", "", ""
+	}
+	return *resp.Account, *resp.UserId, *resp.Arn
+}
+
 func (stsCli *STSClient) GetSessionCredsWithoutMfa(duration *int64) *sts.Credentials {
 	input := &sts.GetSessionTokenInput{
 		DurationSeconds: duration,
