@@ -18,7 +18,7 @@ func NewAthena(sess *session.Session) *AthenaClient {
 	return &AthenaClient{cli: client}
 }
 
-func (athenaCli *AthenaClient) StartQueryExecution(catalogDb, tableName, query *string) (*string, error) {
+func (athenaCli *AthenaClient) StartQueryExecution(catalogDb, query *string) (*string, error) {
 	input := &athena.StartQueryExecutionInput{
 		QueryExecutionContext: &athena.QueryExecutionContext{
 			Database: catalogDb,
