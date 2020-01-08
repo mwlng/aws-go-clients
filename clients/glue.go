@@ -36,7 +36,7 @@ func (glueCli *GlueClient) ListDatabases() []*glue.Database {
 	return databases
 }
 
-func (glueCli *GlueClient) ListTables(dbName *string) []*glue.Table {
+func (glueCli *GlueClient) ListTables(dbName *string) []*glue.TableData {
 	input := &glue.GetTablesInput{
 		DatabaseName: dbName,
 	}
