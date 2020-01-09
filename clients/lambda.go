@@ -3,6 +3,7 @@ package clients
 import (
 	"fmt"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/lambda"
@@ -18,10 +19,10 @@ func NewLambda(sess *session.Session) *LambdaClient {
 	return &LambdaClient{cli: client}
 }
 
-func (lambdaCli *LambdaClient) Invoke(functionName *string, payload []byte, invocationType *string) *int64 {
+func (lambdaCli *LambdaClient) Invoke(functionName string, payload []byte, invocationType string) *int64 {
 	input := &lambda.InvokeInput{
-		FunctionName:   functionName,
-		InvocationType: invocationType,
+		FunctionName:   aws.String(functionName),
+		InvocationType: aws.String(invocationType),
 		Payload:        payload,
 	}
 	output, err := lambdaCli.cli.Invoke(input)
