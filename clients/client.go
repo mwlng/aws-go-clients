@@ -15,20 +15,22 @@ func NewClient(service string, sess *session.Session) interface{} {
 		client = NewCloudformation(sess)
 	case "ec2":
 		client = NewEC2(sess)
-	case "ecs":
-		client = NewECS(sess)
 	case "ecr":
 		client = NewECR(sess)
+	case "ecs":
+		client = NewECS(sess)
 	case "emr":
 		client = NewEMR(sess)
 	case "glue":
 		client = NewGlue(sess)
 	case "iam":
 		client = NewIAM(sess)
-	case "route53":
-		client = NewR53(sess)
+	case "lambda":
+		client = NewLambda(sess)
 	case "redshift":
 		client = NewRedShift(sess)
+	case "route53":
+		client = NewR53(sess)
 	case "s3":
 		client = NewS3(sess)
 	case "sts":
