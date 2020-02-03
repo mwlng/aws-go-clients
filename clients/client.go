@@ -33,6 +33,8 @@ func NewClient(service string, sess *session.Session) interface{} {
 		client = NewR53(sess)
 	case "s3":
 		client = NewS3(sess)
+	case "ssm":
+		client = NewSSM(sess)
 	case "sts":
 		client = NewSTS(sess)
 	default:
