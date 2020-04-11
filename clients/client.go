@@ -13,6 +13,8 @@ func NewClient(service string, sess *session.Session) interface{} {
 		client = NewASG(sess)
 	case "cloudformation":
 		client = NewCloudformation(sess)
+	case "dynamodb":
+		client = NewDynamoDB(sess)
 	case "ec2":
 		client = NewEC2(sess)
 	case "ecr":

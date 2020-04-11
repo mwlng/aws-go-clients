@@ -23,8 +23,7 @@ func NewDynamoDB(sess *session.Session) *DynamoDBClient {
 func (dynamoDBCli *DynamoDBClient) CreateTable(tableName *string,
 	attributeDefinitions []*dynamodb.AttributeDefinition,
 	keySchema []*dynamodb.KeySchemaElement,
-	provisionedThroughput *dynamodb.ProvisionedThroughput,
-) error {
+	provisionedThroughput *dynamodb.ProvisionedThroughput) {
 	input := &dynamodb.CreateTableInput{
 		TableName:             tableName,
 		AttributeDefinitions:  attributeDefinitions,
@@ -34,43 +33,43 @@ func (dynamoDBCli *DynamoDBClient) CreateTable(tableName *string,
 
 	_, err := dynamoDBCli.cli.CreateTable(input)
 	if err != nil {
-		return err
+		handleError(err)
 	}
-	return nil
 }
 
-func (dynamoDBCli *DynamoDBClient) ListTables() ([]*string, error) {
+func (dynamoDBCli *DynamoDBClient) ListTables() []*string {
 	input := &dynamodb.ListTablesInput{}
 	result, err := dynamoDBCli.cli.ListTables(input)
 	if err != nil {
-		return nil, err
+		handleError(err)
+		return []*string{}
 	}
-	return result.TableNames, nil
+	return result.TableNames
 }
 
 func (dynamoDBCli *DynamoDBClient) GetItem(tableName *string,
-	key map[string]*dynamodb.AttributeValue, item interface{}) error {
+	key map[string]*dynamodb.AttributeValue, item interface{}) {
 	input := &dynamodb.GetItemInput{
 		TableName: tableName,
 		Key:       key,
 	}
 	result, err := dynamoDBCli.cli.GetItem(input)
 	if err != nil {
-		return err
+		handleError(err)
+		return
 	}
-
 	err = dynamodbattribute.UnmarshalMap(result.Item, item)
 	if err != nil {
-		return nil
+		handleError(err)
 	}
-	return nil
 }
 
 func (dynamoDBCli *DynamoDBClient) PutItem(tableName *string,
-	key map[string]*dynamodb.AttributeValue, item interface{}) error {
+	key map[string]*dynamodb.AttributeValue, item interface{}) {
 	av, err := dynamodbattribute.MarshalMap(item)
 	if err != nil {
-		return err
+		handleError(err)
+		return
 	}
 	input := &dynamodb.PutItemInput{
 		TableName: tableName,
@@ -78,14 +77,13 @@ func (dynamoDBCli *DynamoDBClient) PutItem(tableName *string,
 	}
 	_, err = dynamoDBCli.cli.PutItem(input)
 	if err != nil {
-		return err
+		handleError(err)
 	}
-	return nil
 }
 
 func (dynamoDBCli *DynamoDBClient) UpdateItem(tableName *string,
 	key map[string]*dynamodb.AttributeValue,
-	attributeValues map[string]*dynamodb.AttributeValue) error {
+	attributeValues map[string]*dynamodb.AttributeValue) {
 	input := &dynamodb.UpdateItemInput{
 		TableName:                 tableName,
 		Key:                       key,
@@ -95,25 +93,23 @@ func (dynamoDBCli *DynamoDBClient) UpdateItem(tableName *string,
 	}
 	_, err := dynamoDBCli.cli.UpdateItem(input)
 	if err != nil {
-		return err
+		handleError(err)
 	}
-	return nil
 }
 
 func (dynamoDBCli *DynamoDBClient) DeleteItem(tableName *string,
-	key map[string]*dynamodb.AttributeValue) error {
+	key map[string]*dynamodb.AttributeValue) {
 	input := &dynamodb.DeleteItemInput{
 		TableName: tableName,
 		Key:       key,
 	}
 	_, err := dynamoDBCli.cli.DeleteItem(input)
 	if err != nil {
-		return err
+		handleError(err)
 	}
-	return nil
 }
 
-func HandleError(err error) {
+func handleError(err error) {
 	if aerr, ok := err.(awserr.Error); ok {
 		switch aerr.Code() {
 		case dynamodb.ErrCodeInternalServerError:
