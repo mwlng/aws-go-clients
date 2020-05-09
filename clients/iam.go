@@ -241,6 +241,18 @@ func (iamCli *IAMClient) ListAttachedRolePolicies(roleName *string) []*iam.Attac
 	return attachedPolicies
 }
 
+func (iamCli *IAMClient) GetRole(name *string) *iam.Role {
+	input := &iam.GetRoleInput{
+		RoleName: name,
+	}
+
+	resp, err := iamCli.cli.GetRole(input)
+	if err != nil {
+		iamCli.handleError(err)
+	}
+	return resp.Role
+}
+
 func (iamCli *IAMClient) ListPolicies() []*iam.Policy {
 	input := &iam.ListPoliciesInput{}
 	resp, err := iamCli.cli.ListPolicies(input)
