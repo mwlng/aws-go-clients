@@ -282,9 +282,79 @@ func (iamCli *IAMClient) GetPolicy(policyArn *string) *iam.GetPolicyOutput {
 	return resp
 }
 
+func (iamCli *IAMClient) CreateRole(name *string, path *string, assumeRolePolicyDocument *string) (*iam.Role, error) {
+	input := &iam.CreateRoleInput{
+		RoleName:                 name,
+		Path:                     path,
+		AssumeRolePolicyDocument: assumeRolePolicyDocument,
+	}
+	resp, err := iamCli.cli.CreateRole(input)
+	if err != nil {
+		iamCli.handleError(err)
+		return nil, err
+	}
+	return resp.Role, nil
+}
+
+func (iamCli *IAMClient) DeleteRole(name *string) error {
+	input := &iam.DeleteRoleInput{
+		RoleName: name,
+	}
+	_, err := iamCli.cli.DeleteRole(input)
+	if err != nil {
+		iamCli.handleError(err)
+		return err
+	}
+	return nil
+}
+
+func (iamCli *IAMClient) AttachRolePolicy(roleName *string, policyArn *string) error {
+	input := &iam.AttachRolePolicyInput{
+		RoleName:  roleName,
+		PolicyArn: policyArn,
+	}
+	_, err := iamCli.cli.AttachRolePolicy(input)
+	if err != nil {
+		iamCli.handleError(err)
+		return err
+	}
+	return nil
+}
+
+func (iamCli *IAMClient) DetachRolePolicy(roleName *string, policyArn *string) error {
+	input := &iam.DetachRolePolicyInput{
+		RoleName:  roleName,
+		PolicyArn: policyArn,
+	}
+	_, err := iamCli.cli.DetachRolePolicy(input)
+	if err != nil {
+		iamCli.handleError(err)
+		return err
+	}
+	return nil
+}
+
 func (iamCli *IAMClient) handleError(err error) {
 	if aerr, ok := err.(awserr.Error); ok {
 		switch aerr.Code() {
+		case iam.ErrCodeLimitExceededException:
+			fmt.Println(iam.ErrCodeLimitExceededException, aerr.Error())
+		case iam.ErrCodeInvalidInputException:
+			fmt.Println(iam.ErrCodeInvalidInputException, aerr.Error())
+		case iam.ErrCodeEntityAlreadyExistsException:
+			fmt.Println(iam.ErrCodeEntityAlreadyExistsException, aerr.Error())
+		case iam.ErrCodeDeleteConflictException:
+			fmt.Println(iam.ErrCodeDeleteConflictException, aerr.Error())
+		case iam.ErrCodeNoSuchEntityException:
+			fmt.Println(iam.ErrCodeNoSuchEntityException, aerr.Error())
+		case iam.ErrCodeMalformedPolicyDocumentException:
+			fmt.Println(iam.ErrCodeMalformedPolicyDocumentException, aerr.Error())
+		case iam.ErrCodeUnmodifiableEntityException:
+			fmt.Println(iam.ErrCodeUnmodifiableEntityException, aerr.Error())
+		case iam.ErrCodeConcurrentModificationException:
+			fmt.Println(iam.ErrCodeConcurrentModificationException, aerr.Error())
+		case iam.ErrCodePolicyNotAttachableException:
+			fmt.Println(iam.ErrCodePolicyNotAttachableException, aerr.Error())
 		case iam.ErrCodeServiceFailureException:
 			fmt.Println(iam.ErrCodeServiceFailureException, aerr.Error())
 		default:
