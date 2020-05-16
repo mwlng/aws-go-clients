@@ -249,6 +249,7 @@ func (iamCli *IAMClient) GetRole(name *string) *iam.Role {
 	resp, err := iamCli.cli.GetRole(input)
 	if err != nil {
 		iamCli.handleError(err)
+		return nil
 	}
 	return resp.Role
 }
