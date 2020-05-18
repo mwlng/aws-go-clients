@@ -60,8 +60,15 @@ func (svc *Service) NewSession() *session.Session {
 			}
 		}
 	} else {
-		sessOptions = session.Options{
-			SharedConfigState: session.SharedConfigEnable,
+		if awsConfig != nil {
+			sessOptions = session.Options{
+				Config:            *awsConfig,
+				SharedConfigState: session.SharedConfigEnable,
+			}
+		} else {
+			sessOptions = session.Options{
+				SharedConfigState: session.SharedConfigEnable,
+			}
 		}
 	}
 
