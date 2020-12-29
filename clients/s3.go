@@ -78,6 +78,34 @@ func (s3Cli *S3Client) ListObjects(bucket *string, pathPrefix *string, continuat
 	return nextToken, resp.Contents
 }
 
+func (s3Cli *S3Client) ListCommonPrefixes(bucket *string, pathPrefix *string, continuationToken *string) (*string, []*s3.CommonPrefix) {
+	var input *s3.ListObjectsV2Input
+	if continuationToken == nil {
+		input = &s3.ListObjectsV2Input{
+			Bucket: bucket,
+			Prefix: pathPrefix,
+		}
+	} else {
+		input = &s3.ListObjectsV2Input{
+			Bucket:            bucket,
+			Prefix:            pathPrefix,
+			ContinuationToken: continuationToken,
+		}
+	}
+
+	resp, err := s3Cli.cli.ListObjectsV2(input)
+	if err != nil {
+		s3Cli.handleError(err)
+		return nil, nil
+	}
+
+	var nextToken *string = nil
+	if *resp.IsTruncated {
+		nextToken = resp.NextContinuationToken
+	}
+	return nextToken, resp.CommonPrefixes
+}
+
 func (s3Cli *S3Client) GetObjectAcl(bucket *string, key *string) *s3.GetObjectAclOutput {
 	input := &s3.GetObjectAclInput{
 		Bucket: bucket,
