@@ -16,11 +16,12 @@ type Service struct {
 }
 
 func (svc *Service) NewSession() *session.Session {
-
-	var awsConfig *aws.Config
-	var sessOptions session.Options
-	var creds *credentials.Credentials
-	var value credentials.Value
+	var (
+		awsConfig   *aws.Config
+		sessOptions session.Options
+		creds       *credentials.Credentials
+		value       credentials.Value
+	)
 
 	if svc.Region != "" {
 		awsConfig = &aws.Config{Region: aws.String(svc.Region)}
@@ -39,24 +40,29 @@ func (svc *Service) NewSession() *session.Session {
 				SecretAccessKey: svc.SecretKey,
 			}
 		}
+
 		creds = credentials.NewStaticCredentialsFromCreds(value)
+
 		if awsConfig != nil {
 			awsConfig = awsConfig.WithCredentials(creds)
 		} else {
 			awsConfig = aws.NewConfig().WithCredentials(creds)
 		}
+
 		sessOptions = session.Options{
 			Config: *awsConfig,
 		}
 	} else if svc.Profile != "" {
 		if awsConfig != nil {
 			sessOptions = session.Options{
-				Config:  *awsConfig,
-				Profile: svc.Profile,
+				Config:            *awsConfig,
+				Profile:           svc.Profile,
+				SharedConfigState: session.SharedConfigEnable,
 			}
 		} else {
 			sessOptions = session.Options{
-				Profile: svc.Profile,
+				Profile:           svc.Profile,
+				SharedConfigState: session.SharedConfigEnable,
 			}
 		}
 	} else {

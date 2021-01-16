@@ -21,6 +21,7 @@ func NewEC2(sess *session.Session) *EC2Client {
 
 func (ec2Cli *EC2Client) ListAllVpcs() []*ec2.Vpc {
 	input := &ec2.DescribeVpcsInput{}
+
 	resp, err := ec2Cli.cli.DescribeVpcs(input)
 	if err != nil {
 		ec2Cli.handleError(err)
@@ -39,24 +40,30 @@ func (ec2Cli *EC2Client) ListAllSubnets() *ec2.DescribeSubnetsOutput {
 
 func (ec2Cli *EC2Client) ListAllInstances() []*ec2.Instance {
 	input := &ec2.DescribeInstancesInput{}
+
 	resp, err := ec2Cli.cli.DescribeInstances(input)
 	if err != nil {
 		ec2Cli.handleError(err)
 	}
+
 	reservations := resp.Reservations
+
 	for resp.NextToken != nil {
 		input = &ec2.DescribeInstancesInput{NextToken: resp.NextToken}
+
 		resp, err = ec2Cli.cli.DescribeInstances(input)
 		if err != nil {
 			ec2Cli.handleError(err)
 		}
+
 		reservations = append(reservations, resp.Reservations...)
 	}
 
-	var instances []*ec2.Instance
+	instances := []*ec2.Instance{}
 	for _, r := range reservations {
 		instances = append(instances, r.Instances...)
 	}
+
 	return instances
 }
 
@@ -66,6 +73,7 @@ func (ec2Cli *EC2Client) ListAMIsByOwner(owner string) *ec2.DescribeImagesOutput
 			aws.String(owner),
 		},
 	}
+
 	resp, err := ec2Cli.cli.DescribeImages(input)
 	if err != nil {
 		ec2Cli.handleError(err)
@@ -85,5 +93,4 @@ func (ec2Cli *EC2Client) handleError(err error) {
 		// Message from an error.
 		fmt.Println(err.Error())
 	}
-	return
 }

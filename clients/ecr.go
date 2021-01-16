@@ -14,22 +14,27 @@ type ECRClient struct {
 
 func NewECR(sess *session.Session) *ECRClient {
 	client := ecr.New(sess)
+
 	return &ECRClient{cli: client}
 }
 
 func (ecrCli *ECRClient) ListRepositories() []*ecr.Repository {
 	input := &ecr.DescribeRepositoriesInput{}
+
 	resp, err := ecrCli.cli.DescribeRepositories(input)
 	if err != nil {
 		ecrCli.handleError(err)
 	}
+
 	repositories := resp.Repositories
 	input = &ecr.DescribeRepositoriesInput{NextToken: resp.NextToken}
+
 	for resp.NextToken != nil {
 		resp, err = ecrCli.cli.DescribeRepositories(input)
 		if err != nil {
 			ecrCli.handleError(err)
 		}
+
 		repositories = append(repositories, resp.Repositories...)
 	}
 
@@ -38,36 +43,44 @@ func (ecrCli *ECRClient) ListRepositories() []*ecr.Repository {
 
 func (ecrCli *ECRClient) ListImageIdsByRepository(repoName *string) []*ecr.ImageIdentifier {
 	input := &ecr.ListImagesInput{RepositoryName: repoName}
+
 	resp, err := ecrCli.cli.ListImages(input)
 	if err != nil {
 		ecrCli.handleError(err)
 	}
+
 	images := resp.ImageIds
+
 	for resp.NextToken != nil {
 		input = &ecr.ListImagesInput{
 			NextToken:      resp.NextToken,
 			RepositoryName: repoName,
 		}
+
 		resp, err = ecrCli.cli.ListImages(input)
 		if err != nil {
 			ecrCli.handleError(err)
 		}
+
 		images = append(images, resp.ImageIds...)
 	}
 
 	return images
 }
 
-func (ecrCli *ECRClient) DescribeImageById(repoName *string, id *ecr.ImageIdentifier) *ecr.ImageDetail {
+func (ecrCli *ECRClient) DescribeImageByID(repoName *string, id *ecr.ImageIdentifier) *ecr.ImageDetail {
 	input := &ecr.DescribeImagesInput{
 		RepositoryName: repoName,
 		ImageIds:       []*ecr.ImageIdentifier{id},
 	}
+
 	resp, err := ecrCli.cli.DescribeImages(input)
 	if err != nil {
 		ecrCli.handleError(err)
+
 		return &ecr.ImageDetail{}
 	}
+
 	return resp.ImageDetails[0]
 }
 
@@ -76,6 +89,7 @@ func (ecrCli *ECRClient) SetRepositoryPolicy(input *ecr.SetRepositoryPolicyInput
 	if err != nil {
 		ecrCli.handleError(err)
 	}
+
 	return resp
 }
 
@@ -84,6 +98,7 @@ func (ecrCli *ECRClient) GetRepositoryPolicy(input *ecr.GetRepositoryPolicyInput
 	if err != nil {
 		ecrCli.handleError(err)
 	}
+
 	return resp
 }
 
@@ -92,6 +107,7 @@ func (ecrCli *ECRClient) DeleteRepository(input *ecr.DeleteRepositoryInput) *ecr
 	if err != nil {
 		ecrCli.handleError(err)
 	}
+
 	return resp
 }
 
@@ -112,5 +128,4 @@ func (ecrCli *ECRClient) handleError(err error) {
 		// Message from an error.
 		fmt.Println(err.Error())
 	}
-	return
 }

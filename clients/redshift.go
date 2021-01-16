@@ -18,16 +18,19 @@ func NewRedShift(sess *session.Session) *RedShiftClient {
 	return &RedShiftClient{cli: client}
 }
 
-func (rsCli *RedShiftClient) GetClusterCreds(clusterId *string,
+func (rsCli *RedShiftClient) GetClusterCreds(clusterID *string,
 	dbUser *string,
 	dbGroup *[]*string,
 	dbName *string) *redshift.GetClusterCredentialsOutput {
 	input := &redshift.GetClusterCredentialsInput{}
+
 	resp, err := rsCli.cli.GetClusterCredentials(input)
 	if err != nil {
 		rsCli.handleError(err)
+
 		return nil
 	}
+
 	return resp
 }
 
@@ -46,5 +49,4 @@ func (rsCli *RedShiftClient) handleError(err error) {
 		// Message from an error.
 		fmt.Println(err.Error())
 	}
-	return
 }

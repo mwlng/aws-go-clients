@@ -20,19 +20,25 @@ func NewGlue(sess *session.Session) *GlueClient {
 
 func (glueCli *GlueClient) ListDatabases() []*glue.Database {
 	input := &glue.GetDatabasesInput{}
+
 	resp, err := glueCli.cli.GetDatabases(input)
 	if err != nil {
 		glueCli.handleError(err)
 	}
+
 	databases := resp.DatabaseList
+
 	for resp.NextToken != nil {
 		input = &glue.GetDatabasesInput{NextToken: resp.NextToken}
+
 		resp, err = glueCli.cli.GetDatabases(input)
 		if err != nil {
 			glueCli.handleError(err)
 		}
+
 		databases = append(databases, resp.DatabaseList...)
 	}
+
 	return databases
 }
 
@@ -40,77 +46,100 @@ func (glueCli *GlueClient) ListTables(dbName *string) []*glue.TableData {
 	input := &glue.GetTablesInput{
 		DatabaseName: dbName,
 	}
+
 	resp, err := glueCli.cli.GetTables(input)
 	if err != nil {
 		glueCli.handleError(err)
 	}
+
 	tables := resp.TableList
+
 	for resp.NextToken != nil {
 		input = &glue.GetTablesInput{
 			DatabaseName: dbName,
 			NextToken:    resp.NextToken,
 		}
+
 		resp, err = glueCli.cli.GetTables(input)
 		if err != nil {
 			glueCli.handleError(err)
 		}
+
 		tables = append(tables, resp.TableList...)
 	}
+
 	return tables
 }
 
 func (glueCli *GlueClient) ListCrawlers() []*glue.Crawler {
 	input := &glue.GetCrawlersInput{}
+
 	resp, err := glueCli.cli.GetCrawlers(input)
 	if err != nil {
 		glueCli.handleError(err)
 	}
+
 	crawlers := resp.Crawlers
 
 	for resp.NextToken != nil {
 		input = &glue.GetCrawlersInput{NextToken: resp.NextToken}
+
 		resp, err = glueCli.cli.GetCrawlers(input)
 		if err != nil {
 			glueCli.handleError(err)
 		}
+
 		crawlers = append(crawlers, resp.Crawlers...)
 	}
+
 	return crawlers
 }
 
 func (glueCli *GlueClient) ListClassifiers() []*glue.Classifier {
 	input := &glue.GetClassifiersInput{}
+
 	resp, err := glueCli.cli.GetClassifiers(input)
 	if err != nil {
 		glueCli.handleError(err)
 	}
+
 	classifiers := resp.Classifiers
+
 	for resp.NextToken != nil {
 		input = &glue.GetClassifiersInput{NextToken: resp.NextToken}
+
 		resp, err = glueCli.cli.GetClassifiers(input)
 		if err != nil {
 			glueCli.handleError(err)
 		}
+
 		classifiers = append(classifiers, resp.Classifiers...)
 	}
+
 	return classifiers
 }
 
 func (glueCli *GlueClient) ListTriggers() []*glue.Trigger {
 	input := &glue.GetTriggersInput{}
+
 	resp, err := glueCli.cli.GetTriggers(input)
 	if err != nil {
 		glueCli.handleError(err)
 	}
+
 	triggers := resp.Triggers
+
 	for resp.NextToken != nil {
 		input = &glue.GetTriggersInput{NextToken: resp.NextToken}
+
 		resp, err = glueCli.cli.GetTriggers(input)
 		if err != nil {
 			glueCli.handleError(err)
 		}
+
 		triggers = append(triggers, resp.Triggers...)
 	}
+
 	return triggers
 }
 
@@ -135,5 +164,4 @@ func (glueCli *GlueClient) handleError(err error) {
 		// Message from an error.
 		fmt.Println(err.Error())
 	}
-	return
 }

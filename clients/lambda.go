@@ -25,6 +25,7 @@ func (lambdaCli *LambdaClient) Invoke(functionName string, payload []byte, invoc
 		InvocationType: aws.String(invocationType),
 		Payload:        payload,
 	}
+
 	output, err := lambdaCli.cli.Invoke(input)
 	if err != nil {
 		lambdaCli.handleError(err)

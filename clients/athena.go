@@ -18,10 +18,10 @@ func NewAthena(sess *session.Session) *AthenaClient {
 	return &AthenaClient{cli: client}
 }
 
-func (athenaCli *AthenaClient) StartQueryExecution(catalogDb, query *string) (*string, error) {
+func (athenaCli *AthenaClient) StartQueryExecution(catalogDB, query *string) (*string, error) {
 	input := &athena.StartQueryExecutionInput{
 		QueryExecutionContext: &athena.QueryExecutionContext{
-			Database: catalogDb,
+			Database: catalogDB,
 		},
 		QueryString: query,
 	}
@@ -34,9 +34,9 @@ func (athenaCli *AthenaClient) StartQueryExecution(catalogDb, query *string) (*s
 	return resp.QueryExecutionId, nil
 }
 
-func (athenaCli *AthenaClient) GetQueryExecution(queryExecutionId *string) (*athena.QueryExecutionStatus, error) {
+func (athenaCli *AthenaClient) GetQueryExecution(queryExecutionID *string) (*athena.QueryExecutionStatus, error) {
 	input := &athena.GetQueryExecutionInput{
-		QueryExecutionId: queryExecutionId,
+		QueryExecutionId: queryExecutionID,
 	}
 
 	resp, err := athenaCli.cli.GetQueryExecution(input)
@@ -47,9 +47,9 @@ func (athenaCli *AthenaClient) GetQueryExecution(queryExecutionId *string) (*ath
 	return resp.QueryExecution.Status, nil
 }
 
-func (athenaCli *AthenaClient) GetQueryResults(queryExecutionId, nextToken *string) (*athena.ResultSet, *string, error) {
+func (athenaCli *AthenaClient) GetQueryResults(queryExecutionID, nextToken *string) (*athena.ResultSet, *string, error) {
 	input := &athena.GetQueryResultsInput{
-		QueryExecutionId: queryExecutionId,
+		QueryExecutionId: queryExecutionID,
 	}
 	if nextToken != nil {
 		input.NextToken = nextToken
@@ -80,5 +80,4 @@ func (athenaCli *AthenaClient) HandleError(err error) {
 		// Message from an error.
 		fmt.Println(err.Error())
 	}
-	return
 }

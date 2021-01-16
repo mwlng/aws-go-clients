@@ -6,6 +6,7 @@ import (
 
 func NewClient(service string, sess *session.Session) interface{} {
 	var client interface{}
+
 	switch service {
 	case "athena":
 		client = NewAthena(sess)
@@ -42,5 +43,6 @@ func NewClient(service string, sess *session.Session) interface{} {
 	default:
 		client = nil
 	}
+
 	return client
 }

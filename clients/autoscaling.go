@@ -20,19 +20,25 @@ func NewASG(sess *session.Session) *ASGClient {
 
 func (asgCli *ASGClient) ListAllAutoScalingGroups() []*autoscaling.Group {
 	input := &autoscaling.DescribeAutoScalingGroupsInput{}
+
 	resp, err := asgCli.cli.DescribeAutoScalingGroups(input)
 	if err != nil {
 		asgCli.handleError(err)
 	}
+
 	groups := resp.AutoScalingGroups
+
 	for resp.NextToken != nil {
 		input = &autoscaling.DescribeAutoScalingGroupsInput{NextToken: resp.NextToken}
+
 		resp, err = asgCli.cli.DescribeAutoScalingGroups(input)
 		if err != nil {
 			asgCli.handleError(err)
 		}
+
 		groups = append(groups, resp.AutoScalingGroups...)
 	}
+
 	return groups
 }
 
@@ -49,5 +55,4 @@ func (asgCli *ASGClient) handleError(err error) {
 		// Message from an error.
 		fmt.Println(err.Error())
 	}
-	return
 }

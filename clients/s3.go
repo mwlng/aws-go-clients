@@ -19,34 +19,39 @@ func NewS3(sess *session.Session) *S3Client {
 	return &S3Client{cli: client}
 }
 
-func (s3cli *S3Client) ListBuckets() *s3.ListBucketsOutput {
+func (s3Cli *S3Client) ListBuckets() *s3.ListBucketsOutput {
 	input := &s3.ListBucketsInput{}
-	resp, err := s3cli.cli.ListBuckets(input)
-	if err != nil {
-		s3cli.handleError(err)
-	}
-	return resp
-}
 
-func (s3cli *S3Client) GetBucketPolicy(input *s3.GetBucketPolicyInput) *s3.GetBucketPolicyOutput {
-	resp, err := s3cli.cli.GetBucketPolicy(input)
+	resp, err := s3Cli.cli.ListBuckets(input)
 	if err != nil {
-		s3cli.handleError(err)
+		s3Cli.handleError(err)
 	}
 
 	return resp
 }
 
-func (s3cli *S3Client) HeadObject(bucket *string, key *string) *s3.HeadObjectOutput {
+func (s3Cli *S3Client) GetBucketPolicy(input *s3.GetBucketPolicyInput) *s3.GetBucketPolicyOutput {
+	resp, err := s3Cli.cli.GetBucketPolicy(input)
+	if err != nil {
+		s3Cli.handleError(err)
+	}
+
+	return resp
+}
+
+func (s3Cli *S3Client) HeadObject(bucket *string, key *string) *s3.HeadObjectOutput {
 	input := &s3.HeadObjectInput{
 		Bucket: bucket,
 		Key:    key,
 	}
-	resp, err := s3cli.cli.HeadObject(input)
+
+	resp, err := s3Cli.cli.HeadObject(input)
 	if err != nil {
-		s3cli.handleError(err)
+		s3Cli.handleError(err)
+
 		return nil
 	}
+
 	return resp
 }
 
@@ -68,6 +73,7 @@ func (s3Cli *S3Client) ListObjects(bucket *string, pathPrefix *string, continuat
 	resp, err := s3Cli.cli.ListObjectsV2(input)
 	if err != nil {
 		s3Cli.handleError(err)
+
 		return nil, nil
 	}
 
@@ -75,20 +81,26 @@ func (s3Cli *S3Client) ListObjects(bucket *string, pathPrefix *string, continuat
 	if *resp.IsTruncated {
 		nextToken = resp.NextContinuationToken
 	}
+
 	return nextToken, resp.Contents
 }
 
 func (s3Cli *S3Client) ListCommonPrefixes(bucket *string, pathPrefix *string, continuationToken *string) (*string, []*s3.CommonPrefix) {
 	var input *s3.ListObjectsV2Input
+
+	delimiter := "/"
+
 	if continuationToken == nil {
 		input = &s3.ListObjectsV2Input{
-			Bucket: bucket,
-			Prefix: pathPrefix,
+			Bucket:    bucket,
+			Prefix:    pathPrefix,
+			Delimiter: &delimiter,
 		}
 	} else {
 		input = &s3.ListObjectsV2Input{
 			Bucket:            bucket,
 			Prefix:            pathPrefix,
+			Delimiter:         &delimiter,
 			ContinuationToken: continuationToken,
 		}
 	}
@@ -96,6 +108,7 @@ func (s3Cli *S3Client) ListCommonPrefixes(bucket *string, pathPrefix *string, co
 	resp, err := s3Cli.cli.ListObjectsV2(input)
 	if err != nil {
 		s3Cli.handleError(err)
+
 		return nil, nil
 	}
 
@@ -103,10 +116,11 @@ func (s3Cli *S3Client) ListCommonPrefixes(bucket *string, pathPrefix *string, co
 	if *resp.IsTruncated {
 		nextToken = resp.NextContinuationToken
 	}
+
 	return nextToken, resp.CommonPrefixes
 }
 
-func (s3Cli *S3Client) GetObjectAcl(bucket *string, key *string) *s3.GetObjectAclOutput {
+func (s3Cli *S3Client) GetObjectACL(bucket *string, key *string) *s3.GetObjectAclOutput {
 	input := &s3.GetObjectAclInput{
 		Bucket: bucket,
 		Key:    key,
@@ -120,17 +134,17 @@ func (s3Cli *S3Client) GetObjectAcl(bucket *string, key *string) *s3.GetObjectAc
 	return resp
 }
 
-func (s3Cli *S3Client) PutObjectAcl(bucket *string, key *string, acl *string) {
+func (s3Cli *S3Client) PutObjectACL(bucket *string, key *string, acl *string) {
 	input := &s3.PutObjectAclInput{
 		Bucket: bucket,
 		Key:    key,
 		ACL:    acl,
 	}
+
 	_, err := s3Cli.cli.PutObjectAcl(input)
 	if err != nil {
 		s3Cli.handleError(err)
 	}
-	return
 }
 
 func (s3Cli *S3Client) CopyObject(srcBucket *string, tgtBucket *string,
@@ -146,7 +160,6 @@ func (s3Cli *S3Client) CopyObject(srcBucket *string, tgtBucket *string,
 	if err != nil {
 		s3Cli.handleError(err)
 	}
-	return
 }
 
 func (s3Cli *S3Client) handleError(err error) {
@@ -162,5 +175,4 @@ func (s3Cli *S3Client) handleError(err error) {
 		// Message from an error.
 		fmt.Println(err.Error())
 	}
-	return
 }

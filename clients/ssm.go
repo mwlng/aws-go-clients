@@ -24,11 +24,14 @@ func (ssmCli *SSMClient) GetParameter(name string) string {
 		Name:           &name,
 		WithDecryption: aws.Bool(true),
 	}
+
 	resp, err := ssmCli.cli.GetParameter(input)
 	if err != nil {
 		ssmCli.handleError(err)
+
 		return ""
 	}
+
 	return *resp.Parameter.Value
 }
 
@@ -51,5 +54,4 @@ func (ssmCli *SSMClient) handleError(err error) {
 		// Message from an error.
 		fmt.Println(err.Error())
 	}
-	return
 }

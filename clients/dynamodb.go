@@ -39,11 +39,14 @@ func (dynamoDBCli *DynamoDBClient) CreateTable(tableName *string,
 
 func (dynamoDBCli *DynamoDBClient) ListTables() []*string {
 	input := &dynamodb.ListTablesInput{}
+
 	result, err := dynamoDBCli.cli.ListTables(input)
 	if err != nil {
 		handleError(err)
+
 		return []*string{}
 	}
+
 	return result.TableNames
 }
 
@@ -53,11 +56,14 @@ func (dynamoDBCli *DynamoDBClient) GetItem(tableName *string,
 		TableName: tableName,
 		Key:       key,
 	}
+
 	result, err := dynamoDBCli.cli.GetItem(input)
 	if err != nil {
 		handleError(err)
+
 		return
 	}
+
 	err = dynamodbattribute.UnmarshalMap(result.Item, item)
 	if err != nil {
 		handleError(err)
@@ -69,12 +75,15 @@ func (dynamoDBCli *DynamoDBClient) PutItem(tableName *string,
 	av, err := dynamodbattribute.MarshalMap(item)
 	if err != nil {
 		handleError(err)
+
 		return
 	}
+
 	input := &dynamodb.PutItemInput{
 		TableName: tableName,
 		Item:      av,
 	}
+
 	_, err = dynamoDBCli.cli.PutItem(input)
 	if err != nil {
 		handleError(err)
@@ -91,6 +100,7 @@ func (dynamoDBCli *DynamoDBClient) UpdateItem(tableName *string,
 		ReturnValues:              aws.String("UPDATED_NEW"),
 		UpdateExpression:          aws.String("set Rating = :r"),
 	}
+
 	_, err := dynamoDBCli.cli.UpdateItem(input)
 	if err != nil {
 		handleError(err)
@@ -103,6 +113,7 @@ func (dynamoDBCli *DynamoDBClient) DeleteItem(tableName *string,
 		TableName: tableName,
 		Key:       key,
 	}
+
 	_, err := dynamoDBCli.cli.DeleteItem(input)
 	if err != nil {
 		handleError(err)
@@ -120,5 +131,4 @@ func handleError(err error) {
 	} else {
 		fmt.Println(err.Error())
 	}
-	return
 }
