@@ -80,6 +80,17 @@ func (r53Cli *R53Client) ListGeoLocations() []*route53.GeoLocationDetails {
 	return resp.GeoLocationDetailsList
 }
 
+func (r53Cli *R53Client) GetResourceRecordSet(name *string, hostedZoneID *string) *route53.ResourceRecordSet {
+	recordSets := r53Cli.ListResourceRecordSets(hostedZoneID)
+	for _, recordSet := range recordSets {
+		if *recordSet.Name == *name {
+			return recordSet
+		}
+	}
+
+	return nil
+}
+
 func (r53Cli *R53Client) handleError(err error) {
 	if aerr, ok := err.(awserr.Error); ok {
 		switch aerr.Code() {
