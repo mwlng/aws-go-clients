@@ -77,7 +77,7 @@ func (s3Cli *S3Client) ListObjects(bucket *string, pathPrefix *string, continuat
 		return nil, nil
 	}
 
-	var nextToken *string = nil
+	var nextToken *string
 	if *resp.IsTruncated {
 		nextToken = resp.NextContinuationToken
 	}
@@ -112,7 +112,7 @@ func (s3Cli *S3Client) ListCommonPrefixes(bucket *string, pathPrefix *string, co
 		return nil, nil
 	}
 
-	var nextToken *string = nil
+	var nextToken *string
 	if *resp.IsTruncated {
 		nextToken = resp.NextContinuationToken
 	}
