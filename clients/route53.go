@@ -83,7 +83,8 @@ func (r53Cli *R53Client) ListGeoLocations() []*route53.GeoLocationDetails {
 func (r53Cli *R53Client) GetResourceRecordSet(name *string, hostedZoneID *string) *route53.ResourceRecordSet {
 	recordSets := r53Cli.ListResourceRecordSets(hostedZoneID)
 	for _, recordSet := range recordSets {
-		if *recordSet.Name == *name {
+		recordSetName := recordSet.Name
+		if *recordSetName == *name {
 			return recordSet
 		}
 	}
