@@ -92,6 +92,39 @@ func (r53Cli *R53Client) GetResourceRecordSet(name *string, hostedZoneID *string
 	return nil
 }
 
+func (r53Cli *R53Client) ChangeResourceRecordSets(recordSets []*route53.ResourceRecordSet, action *string,
+	hostedZoneID *string, changeComment *string) *route53.ChangeResourceRecordSetsOutput {
+	changes := []*route53.Change{}
+
+	for _, recordSet := range recordSets {
+		change := &route53.Change{
+			Action:            action,
+			ResourceRecordSet: recordSet,
+		}
+
+		changes = append(changes, change)
+	}
+
+	if len(changes) > 0 {
+		input := &route53.ChangeResourceRecordSetsInput{
+			ChangeBatch: &route53.ChangeBatch{
+				Changes: changes,
+				Comment: changeComment,
+			},
+			HostedZoneId: hostedZoneID,
+		}
+
+		resp, err := r53Cli.cli.ChangeResourceRecordSets(input)
+		if err != nil {
+			handleError(err)
+		}
+
+		return resp
+	}
+
+	return nil
+}
+
 func (r53Cli *R53Client) handleError(err error) {
 	if aerr, ok := err.(awserr.Error); ok {
 		switch aerr.Code() {
