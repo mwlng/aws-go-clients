@@ -40,6 +40,8 @@ func NewClient(service string, sess *session.Session) interface{} {
 		client = NewSSM(sess)
 	case "sts":
 		client = NewSTS(sess)
+	case "secretsmanager":
+		client = NewSecretsManager(sess)
 	default:
 		client = nil
 	}
