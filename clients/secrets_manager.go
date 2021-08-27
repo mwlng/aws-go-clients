@@ -60,6 +60,18 @@ func (smCli *SecretsManagerClient) PutSecret(name, value string) {
 	}
 }
 
+func (smCli *SecretsManagerClient) UpdateSecret(name, value string) {
+	input := &secretsmanager.UpdateSecretInput{
+		SecretId:     aws.String(name),
+		SecretString: aws.String(value),
+	}
+
+	_, err := smCli.cli.UpdateSecret(input)
+	if err != nil {
+		smCli.handleError(err)
+	}
+}
+
 func (smCli *SecretsManagerClient) ListAllSecrets() []*secretsmanager.SecretListEntry {
 	secrets := []*secretsmanager.SecretListEntry{}
 	input := &secretsmanager.ListSecretsInput{}
@@ -76,7 +88,7 @@ func (smCli *SecretsManagerClient) ListAllSecrets() []*secretsmanager.SecretList
 			NextToken: resp.NextToken,
 		}
 
-		resp, err := smCli.cli.ListSecrets(input)
+		resp, err = smCli.cli.ListSecrets(input)
 		if err != nil {
 			smCli.handleError(err)
 			return secrets
