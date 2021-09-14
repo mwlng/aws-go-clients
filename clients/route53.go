@@ -52,7 +52,7 @@ func (r53Cli *R53Client) ListResourceRecordSets(hostedZoneID *string) []*route53
 
 	records := resp.ResourceRecordSets
 
-	for *resp.IsTruncated {
+	for resp != nil && *resp.IsTruncated {
 		input = &route53.ListResourceRecordSetsInput{
 			HostedZoneId:    hostedZoneID,
 			StartRecordName: resp.NextRecordName,
