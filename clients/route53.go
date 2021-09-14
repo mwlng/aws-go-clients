@@ -48,6 +48,7 @@ func (r53Cli *R53Client) ListResourceRecordSets(hostedZoneID *string) []*route53
 	resp, err := r53Cli.cli.ListResourceRecordSets(input)
 	if err != nil {
 		r53Cli.handleError(err)
+		return nil
 	}
 
 	records := resp.ResourceRecordSets
