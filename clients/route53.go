@@ -52,7 +52,7 @@ func (r53Cli *R53Client) ListResourceRecordSets(hostedZoneID *string) []*route53
 
 	records := resp.ResourceRecordSets
 
-	for resp != nil && *resp.IsTruncated {
+	for *resp.IsTruncated {
 		input = &route53.ListResourceRecordSetsInput{
 			HostedZoneId:    hostedZoneID,
 			StartRecordName: resp.NextRecordName,
@@ -61,6 +61,7 @@ func (r53Cli *R53Client) ListResourceRecordSets(hostedZoneID *string) []*route53
 		resp, err = r53Cli.cli.ListResourceRecordSets(input)
 		if err != nil {
 			r53Cli.handleError(err)
+			break
 		}
 
 		records = append(records, resp.ResourceRecordSets...)
