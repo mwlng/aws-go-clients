@@ -3,6 +3,7 @@ package clients
 import (
 	"fmt"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/autoscaling"
@@ -16,6 +17,22 @@ func NewASG(sess *session.Session) *ASGClient {
 	client := autoscaling.New(sess)
 
 	return &ASGClient{cli: client}
+}
+
+func (asgCli *ASGClient) DescribeAutoScalngInstances(instanceID string) *autoscaling.DescribeAutoScalingInstancesOutput {
+	input := &autoscaling.DescribeAutoScalingInstancesInput{
+		InstanceIds: []*string{
+			aws.String(instanceID),
+		},
+	}
+
+	result, err := asgCli.cli.DescribeAutoScalingInstances(input)
+
+	if err != nil {
+		asgCli.handleError(err)
+	}
+
+	return result
 }
 
 func (asgCli *ASGClient) ListAllAutoScalingGroups() []*autoscaling.Group {
@@ -45,6 +62,8 @@ func (asgCli *ASGClient) ListAllAutoScalingGroups() []*autoscaling.Group {
 func (asgCli *ASGClient) handleError(err error) {
 	if aerr, ok := err.(awserr.Error); ok {
 		switch aerr.Code() {
+		case autoscaling.ErrCodeInvalidNextToken:
+			fmt.Println(autoscaling.ErrCodeInvalidNextToken, aerr.Error())
 		case autoscaling.ErrCodeResourceContentionFault:
 			fmt.Println(autoscaling.ErrCodeResourceContentionFault, aerr.Error())
 		default:

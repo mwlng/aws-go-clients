@@ -38,6 +38,33 @@ func (ec2Cli *EC2Client) ListAllSubnets() *ec2.DescribeSubnetsOutput {
 	return nil
 }
 
+func (ec2Cli *EC2Client) DescribeInstanceByName(name string) []*ec2.Instance {
+	input := &ec2.DescribeInstancesInput{
+		Filters: []*ec2.Filter{
+			{
+				Name: aws.String("private-dns-name"),
+				Values: []*string{
+					aws.String(name),
+				},
+			},
+		},
+	}
+
+	resp, err := ec2Cli.cli.DescribeInstances(input)
+	if err != nil {
+		ec2Cli.handleError(err)
+	}
+
+	reservations := resp.Reservations
+
+	instances := []*ec2.Instance{}
+	for _, r := range reservations {
+		instances = append(instances, r.Instances...)
+	}
+
+	return instances
+}
+
 func (ec2Cli *EC2Client) ListAllInstances() []*ec2.Instance {
 	input := &ec2.DescribeInstancesInput{}
 
