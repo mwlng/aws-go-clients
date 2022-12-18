@@ -100,6 +100,21 @@ func (smCli *SecretsManagerClient) ListAllSecrets() []*secretsmanager.SecretList
 	return secrets
 }
 
+func (smCli *SecretsManagerClient) DescribeSecret(secretID string) *secretsmanager.DescribeSecretOutput {
+	input := &secretsmanager.DescribeSecretInput{
+		SecretId: aws.String(secretID),
+	}
+
+	resp, err := smCli.cli.DescribeSecret(input)
+	if err != nil {
+		smCli.handleError(err)
+
+		return nil
+	}
+
+	return resp
+}
+
 func (smCli *SecretsManagerClient) handleError(err error) {
 
 	if aerr, ok := err.(awserr.Error); ok {
