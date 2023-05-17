@@ -35,6 +35,25 @@ func (asgCli *ASGClient) DescribeAutoScalngInstances(instanceID string) *autosca
 	return result
 }
 
+func (asgCli *ASGClient) GetAutoScalingGroupByName(name string) *autoscaling.Group {
+	input := &autoscaling.DescribeAutoScalingGroupsInput{
+		AutoScalingGroupNames: []*string{&name},
+	}
+
+	resp, err := asgCli.cli.DescribeAutoScalingGroups(input)
+	if err != nil {
+		asgCli.handleError(err)
+	}
+
+	groups := resp.AutoScalingGroups
+
+	if len(groups) > 0 {
+		return groups[0]
+	}
+
+	return nil
+}
+
 func (asgCli *ASGClient) ListAllAutoScalingGroups() []*autoscaling.Group {
 	input := &autoscaling.DescribeAutoScalingGroupsInput{}
 

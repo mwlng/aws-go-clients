@@ -162,6 +162,20 @@ func (s3Cli *S3Client) CopyObject(srcBucket *string, tgtBucket *string,
 	}
 }
 
+func (s3Cli *S3Client) GetBucketSSEConfiguration(bucket *string) *s3.ServerSideEncryptionConfiguration {
+	input := &s3.GetBucketEncryptionInput{
+		Bucket: bucket,
+	}
+
+	output, err := s3Cli.cli.GetBucketEncryption(input)
+
+	if err != nil {
+		s3Cli.handleError(err)
+	}
+
+	return output.ServerSideEncryptionConfiguration
+}
+
 func (s3Cli *S3Client) handleError(err error) {
 	if aerr, ok := err.(awserr.Error); ok {
 		switch aerr.Code() {
