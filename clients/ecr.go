@@ -3,6 +3,7 @@ package clients
 import (
 	"fmt"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ecr"
@@ -16,6 +17,18 @@ func NewECR(sess *session.Session) *ECRClient {
 	client := ecr.New(sess)
 
 	return &ECRClient{cli: client}
+}
+
+func (ecrCli *ECRClient) CreateRepository(repoName string) {
+	input := &ecr.CreateRepositoryInput{
+		RepositoryName: aws.String(repoName),
+	}
+
+	_, err := ecrCli.cli.CreateRepository(input)
+
+	if err != nil {
+		ecrCli.handleError(err)
+	}
 }
 
 func (ecrCli *ECRClient) ListRepositories() []*ecr.Repository {
@@ -118,8 +131,16 @@ func (ecrCli *ECRClient) handleError(err error) {
 			fmt.Println(ecr.ErrCodeServerException, aerr.Error())
 		case ecr.ErrCodeInvalidParameterException:
 			fmt.Println(ecr.ErrCodeInvalidParameterException, aerr.Error())
-		case ecr.ErrCodeRepositoryNotFoundException:
-			fmt.Println(ecr.ErrCodeRepositoryNotFoundException, aerr.Error())
+		case ecr.ErrCodeInvalidTagParameterException:
+			fmt.Println(ecr.ErrCodeInvalidTagParameterException, aerr.Error())
+		case ecr.ErrCodeTooManyTagsException:
+			fmt.Println(ecr.ErrCodeTooManyTagsException, aerr.Error())
+		case ecr.ErrCodeRepositoryAlreadyExistsException:
+			fmt.Println(ecr.ErrCodeRepositoryAlreadyExistsException, aerr.Error())
+		case ecr.ErrCodeLimitExceededException:
+			fmt.Println(ecr.ErrCodeLimitExceededException, aerr.Error())
+		case ecr.ErrCodeKmsException:
+			fmt.Println(ecr.ErrCodeKmsException, aerr.Error())
 		default:
 			fmt.Println(aerr.Error())
 		}
