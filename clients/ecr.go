@@ -124,6 +124,33 @@ func (ecrCli *ECRClient) DeleteRepository(input *ecr.DeleteRepositoryInput) *ecr
 	return resp
 }
 
+func (ecrCli *ECRClient) GetAuthorizationToken() []*ecr.AuthorizationData {
+	input := &ecr.GetAuthorizationTokenInput{}
+
+	result, err := ecrCli.cli.GetAuthorizationToken(input)
+	if err != nil {
+		ecrCli.handleError(err)
+
+		return nil
+	}
+
+	return result.AuthorizationData
+}
+
+func (ecrCli *ECRClient) UploadImage(srcImage, imageTag, registryID, RepoName string) {
+	input := &ecr.PutImageInput{
+		ImageManifest:  aws.String(srcImage),
+		ImageTag:       aws.String(imageTag),
+		RegistryId:     aws.String(registryID),
+		RepositoryName: aws.String(RepoName),
+	}
+
+	_, err := ecrCli.cli.PutImage(input)
+	if err != nil {
+		ecrCli.handleError(err)
+	}
+}
+
 func (ecrCli *ECRClient) handleError(err error) {
 	if aerr, ok := err.(awserr.Error); ok {
 		switch aerr.Code() {
