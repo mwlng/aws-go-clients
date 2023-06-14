@@ -3,6 +3,7 @@ package clients
 import (
 	"fmt"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/rds"
@@ -18,28 +19,151 @@ func NewRDS(sess *session.Session) *RDSClient {
 	return &RDSClient{cli: client}
 }
 
-func (rdsCli *RDSClient) ListDBInstances() []*rds.DBInstance {
-	input := &rds.DescribeDBInstancesInput{}
+func (rdsCli *RDSClient) CreateClusterSnapshot(clusterID, snapshotID string, tags []*rds.Tag) *rds.DBClusterSnapshot {
+	input := &rds.CreateDBClusterSnapshotInput{
+		DBClusterIdentifier:         aws.String(clusterID),
+		DBClusterSnapshotIdentifier: aws.String(snapshotID),
+		Tags:                        tags,
+	}
 
-	resp, err := rdsCli.cli.DescribeDBInstances(input)
+	resp, err := rdsCli.cli.CreateDBClusterSnapshot(input)
 	if err != nil {
 		rdsCli.handleError(err)
 	}
 
-	instances := resp.DBInstances
+	return resp.DBClusterSnapshot
+}
 
-	for resp.Marker != nil {
-		input = &rds.DescribeDBInstancesInput{Marker: resp.Marker}
-
-		resp, err = rdsCli.cli.DescribeDBInstances(input)
-		if err != nil {
-			rdsCli.handleError(err)
+func (rdsCli *RDSClient) CopyClusterSnapshot(region, srcSnapshotID, tgtSnapshotID, kmsKeyID string) *rds.DBClusterSnapshot {
+	var input *rds.CopyDBClusterSnapshotInput
+	if kmsKeyID == "" {
+		input = &rds.CopyDBClusterSnapshotInput{
+			CopyTags:                          aws.Bool(true),
+			DestinationRegion:                 aws.String(region),
+			SourceDBClusterSnapshotIdentifier: aws.String(srcSnapshotID),
+			TargetDBClusterSnapshotIdentifier: aws.String(tgtSnapshotID),
 		}
-
-		instances = append(instances, resp.DBInstances...)
+	} else {
+		input = &rds.CopyDBClusterSnapshotInput{
+			CopyTags:                          aws.Bool(true),
+			DestinationRegion:                 aws.String(region),
+			SourceDBClusterSnapshotIdentifier: aws.String(srcSnapshotID),
+			TargetDBClusterSnapshotIdentifier: aws.String(tgtSnapshotID),
+			KmsKeyId:                          aws.String(kmsKeyID),
+		}
 	}
 
-	return instances
+	resp, err := rdsCli.cli.CopyDBClusterSnapshot(input)
+	if err != nil {
+		rdsCli.handleError(err)
+	}
+
+	return resp.DBClusterSnapshot
+}
+
+func (rdsCli *RDSClient) DescribeClusterSnapshot(clusterID, snapshotID string) *rds.DBClusterSnapshot {
+	input := &rds.DescribeDBClusterSnapshotsInput{
+		DBClusterIdentifier:         aws.String(clusterID),
+		DBClusterSnapshotIdentifier: aws.String(snapshotID),
+	}
+
+	resp, err := rdsCli.cli.DescribeDBClusterSnapshots(input)
+	if err != nil {
+		rdsCli.handleError(err)
+	}
+
+	if len(resp.DBClusterSnapshots) > 0 {
+		return resp.DBClusterSnapshots[0]
+	}
+
+	return nil
+}
+
+func (rdsCli *RDSClient) DeleteClusterSnapshot(snapshotID string) *rds.DeleteDBClusterSnapshotOutput {
+	input := &rds.DeleteDBClusterSnapshotInput{
+		DBClusterSnapshotIdentifier: aws.String(snapshotID),
+	}
+
+	resp, err := rdsCli.cli.DeleteDBClusterSnapshot(input)
+	if err != nil {
+		rdsCli.handleError(err)
+	}
+
+	return resp
+}
+
+func (rdsCli *RDSClient) CreateDBSnapshot(instanceID, snapshotID string, tags []*rds.Tag) *rds.DBSnapshot {
+	input := &rds.CreateDBSnapshotInput{
+		DBInstanceIdentifier: aws.String(instanceID),
+		DBSnapshotIdentifier: aws.String(snapshotID),
+		Tags:                 tags,
+	}
+
+	resp, err := rdsCli.cli.CreateDBSnapshot(input)
+	if err != nil {
+		rdsCli.handleError(err)
+	}
+
+	return resp.DBSnapshot
+}
+
+func (rdsCli *RDSClient) CopyDBSnapshot(region, srcSnapshotID, tgtSnapshotID, kmsKeyID string) *rds.DBSnapshot {
+	var input *rds.CopyDBSnapshotInput
+	if kmsKeyID == "" {
+		input = &rds.CopyDBSnapshotInput{
+			CopyTags:                   aws.Bool(true),
+			DestinationRegion:          aws.String(region),
+			SourceDBSnapshotIdentifier: aws.String(srcSnapshotID),
+			TargetDBSnapshotIdentifier: aws.String(tgtSnapshotID),
+		}
+	} else {
+		input = &rds.CopyDBSnapshotInput{
+			CopyTags:                   aws.Bool(true),
+			DestinationRegion:          aws.String(region),
+			SourceDBSnapshotIdentifier: aws.String(srcSnapshotID),
+			TargetDBSnapshotIdentifier: aws.String(tgtSnapshotID),
+			KmsKeyId:                   aws.String(kmsKeyID),
+		}
+	}
+
+	resp, err := rdsCli.cli.CopyDBSnapshot(input)
+
+	if err != nil {
+		rdsCli.handleError(err)
+	}
+
+	return resp.DBSnapshot
+}
+
+func (rdsCli *RDSClient) DescribeDBSnapshot(instanceID, snapshotID string) *rds.DBSnapshot {
+	input := &rds.DescribeDBSnapshotsInput{
+		DBInstanceIdentifier: aws.String(instanceID),
+		DBSnapshotIdentifier: aws.String(snapshotID),
+	}
+
+	resp, err := rdsCli.cli.DescribeDBSnapshots(input)
+	if err != nil {
+		rdsCli.handleError(err)
+	}
+
+	if len(resp.DBSnapshots) > 0 {
+		return resp.DBSnapshots[0]
+	}
+
+	return nil
+}
+
+func (rdsCli *RDSClient) DeleteDBSnapshot(snapshotID string) *rds.DeleteDBSnapshotOutput {
+	input := &rds.DeleteDBSnapshotInput{
+		DBSnapshotIdentifier: aws.String(snapshotID),
+	}
+
+	resp, err := rdsCli.cli.DeleteDBSnapshot(input)
+	if err != nil {
+		rdsCli.handleError(err)
+	}
+
+	return resp
 }
 
 func (rdsCli *RDSClient) ListDBClusters() []*rds.DBCluster {
@@ -68,13 +192,76 @@ func (rdsCli *RDSClient) ListDBClusters() []*rds.DBCluster {
 	return clusters
 }
 
+func (rdsCli *RDSClient) ListDBInstances() []*rds.DBInstance {
+	input := &rds.DescribeDBInstancesInput{}
+
+	resp, err := rdsCli.cli.DescribeDBInstances(input)
+	if err != nil {
+		rdsCli.handleError(err)
+	}
+
+	instances := resp.DBInstances
+
+	for resp.Marker != nil {
+		input = &rds.DescribeDBInstancesInput{Marker: resp.Marker}
+
+		resp, err = rdsCli.cli.DescribeDBInstances(input)
+		if err != nil {
+			rdsCli.handleError(err)
+		}
+
+		instances = append(instances, resp.DBInstances...)
+	}
+
+	return instances
+}
+
+func (rdsCli *RDSClient) ListClusterSnapshots(clusterID, snapshotType string) []*rds.DBClusterSnapshot {
+	input := &rds.DescribeDBClusterSnapshotsInput{
+		DBClusterIdentifier: aws.String(clusterID),
+		SnapshotType:        aws.String(snapshotType),
+	}
+
+	resp, err := rdsCli.cli.DescribeDBClusterSnapshots(input)
+	if err != nil {
+		rdsCli.handleError(err)
+	}
+
+	snapshots := resp.DBClusterSnapshots
+
+	for resp.Marker != nil {
+		input = &rds.DescribeDBClusterSnapshotsInput{
+			DBClusterIdentifier: aws.String(clusterID),
+			SnapshotType:        aws.String(snapshotType),
+			Marker:              resp.Marker,
+		}
+
+		resp, err := rdsCli.cli.DescribeDBClusterSnapshots(input)
+		if err != nil {
+			rdsCli.handleError(err)
+		}
+
+		snapshots = append(snapshots, resp.DBClusterSnapshots...)
+	}
+
+	return snapshots
+}
+
 func (rdsCli *RDSClient) handleError(err error) {
 	if aerr, ok := err.(awserr.Error); ok {
 		switch aerr.Code() {
-		case rds.ErrCodeDBClusterNotFoundFault:
-			fmt.Println(rds.ErrCodeDBClusterNotFoundFault, aerr.Error())
-		case rds.ErrCodeDBInstanceNotFoundFault:
-			fmt.Println(rds.ErrCodeDBInstanceNotFoundFault, aerr.Error())
+		case rds.ErrCodeDBSnapshotAlreadyExistsFault:
+			fmt.Println(rds.ErrCodeDBSnapshotAlreadyExistsFault, aerr.Error())
+		case rds.ErrCodeDBSnapshotNotFoundFault:
+			fmt.Println(rds.ErrCodeDBSnapshotNotFoundFault, aerr.Error())
+		case rds.ErrCodeInvalidDBSnapshotStateFault:
+			fmt.Println(rds.ErrCodeInvalidDBSnapshotStateFault, aerr.Error())
+		case rds.ErrCodeSnapshotQuotaExceededFault:
+			fmt.Println(rds.ErrCodeSnapshotQuotaExceededFault, aerr.Error())
+		case rds.ErrCodeKMSKeyNotAccessibleFault:
+			fmt.Println(rds.ErrCodeKMSKeyNotAccessibleFault, aerr.Error())
+		case rds.ErrCodeCustomAvailabilityZoneNotFoundFault:
+			fmt.Println(rds.ErrCodeCustomAvailabilityZoneNotFoundFault, aerr.Error())
 		default:
 			fmt.Println(aerr.Error())
 		}

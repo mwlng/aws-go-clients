@@ -32,6 +32,8 @@ func NewClient(service string, sess *session.Session) interface{} {
 		client = NewLambda(sess)
 	case "redshift":
 		client = NewRedShift(sess)
+	case "rds":
+		client = NewRDS(sess)
 	case "route53":
 		client = NewR53(sess)
 	case "s3":
