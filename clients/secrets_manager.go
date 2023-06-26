@@ -33,7 +33,11 @@ func (smCli *SecretsManagerClient) GetSecret(name string) string {
 		return ""
 	}
 
-	return *resp.SecretString
+	if resp.SecretString != nil {
+		return *resp.SecretString
+	}
+
+	return ""
 }
 
 func (smCli *SecretsManagerClient) CreateSecret(name, value string) {
