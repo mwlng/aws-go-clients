@@ -166,6 +166,20 @@ func (rdsCli *RDSClient) DeleteDBSnapshot(snapshotID string) *rds.DeleteDBSnapsh
 	return resp
 }
 
+func (rdsCli *RDSClient) DescribeDBCluster(dbClusterIdentifier string) *rds.DBCluster {
+	input := &rds.DescribeDBClustersInput{
+		DBClusterIdentifier: &dbClusterIdentifier,
+	}
+
+	resp, err := rdsCli.cli.DescribeDBClusters(input)
+	if err != nil {
+		rdsCli.handleError(err)
+		return nil
+	}
+
+	return resp.DBClusters[0]
+}
+
 func (rdsCli *RDSClient) ListDBClusters() []*rds.DBCluster {
 	input := &rds.DescribeDBClustersInput{}
 
@@ -247,6 +261,45 @@ func (rdsCli *RDSClient) ListClusterSnapshots(clusterID, snapshotType string) []
 	return snapshots
 }
 
+func (rdsCli *RDSClient) DeleteCluster(clusterID, finalSnapshotID string) *rds.DeleteDBClusterOutput {
+	input := &rds.DeleteDBClusterInput{
+		DBClusterIdentifier: aws.String(clusterID),
+		SkipFinalSnapshot:   aws.Bool(true),
+	}
+	if len(finalSnapshotID) > 0 {
+		input = &rds.DeleteDBClusterInput{
+			DBClusterIdentifier:       aws.String(clusterID),
+			FinalDBSnapshotIdentifier: aws.String(finalSnapshotID),
+			SkipFinalSnapshot:         aws.Bool(false),
+		}
+	}
+
+	result, err := rdsCli.cli.DeleteDBCluster(input)
+	if err != nil {
+		handleError(err)
+	}
+
+	return result
+}
+
+func (rdsCli *RDSClient) RestoreDClusterFromSnapshot(
+	clusterID, engine, engineVersion, engineMode, snapshotID string) *rds.RestoreDBClusterFromSnapshotOutput {
+	input := &rds.RestoreDBClusterFromSnapshotInput{
+		DBClusterIdentifier: aws.String(clusterID),
+		Engine:              aws.String(engine),
+		EngineMode:          aws.String(engineMode),
+		EngineVersion:       aws.String(engineVersion),
+		SnapshotIdentifier:  aws.String(snapshotID),
+	}
+
+	result, err := rdsCli.cli.RestoreDBClusterFromSnapshot(input)
+	if err != nil {
+		handleError(err)
+	}
+
+	return result
+}
+
 func (rdsCli *RDSClient) handleError(err error) {
 	if aerr, ok := err.(awserr.Error); ok {
 		switch aerr.Code() {
@@ -262,6 +315,36 @@ func (rdsCli *RDSClient) handleError(err error) {
 			fmt.Println(rds.ErrCodeKMSKeyNotAccessibleFault, aerr.Error())
 		case rds.ErrCodeCustomAvailabilityZoneNotFoundFault:
 			fmt.Println(rds.ErrCodeCustomAvailabilityZoneNotFoundFault, aerr.Error())
+		case rds.ErrCodeDBClusterAlreadyExistsFault:
+			fmt.Println(rds.ErrCodeDBClusterAlreadyExistsFault, aerr.Error())
+		case rds.ErrCodeDBClusterQuotaExceededFault:
+			fmt.Println(rds.ErrCodeDBClusterQuotaExceededFault, aerr.Error())
+		case rds.ErrCodeStorageQuotaExceededFault:
+			fmt.Println(rds.ErrCodeStorageQuotaExceededFault, aerr.Error())
+		case rds.ErrCodeDBSubnetGroupNotFoundFault:
+			fmt.Println(rds.ErrCodeDBSubnetGroupNotFoundFault, aerr.Error())
+		case rds.ErrCodeDBClusterSnapshotNotFoundFault:
+			fmt.Println(rds.ErrCodeDBClusterSnapshotNotFoundFault, aerr.Error())
+		case rds.ErrCodeInsufficientDBClusterCapacityFault:
+			fmt.Println(rds.ErrCodeInsufficientDBClusterCapacityFault, aerr.Error())
+		case rds.ErrCodeInsufficientStorageClusterCapacityFault:
+			fmt.Println(rds.ErrCodeInsufficientStorageClusterCapacityFault, aerr.Error())
+		case rds.ErrCodeInvalidDBClusterSnapshotStateFault:
+			fmt.Println(rds.ErrCodeInvalidDBClusterSnapshotStateFault, aerr.Error())
+		case rds.ErrCodeInvalidVPCNetworkStateFault:
+			fmt.Println(rds.ErrCodeInvalidVPCNetworkStateFault, aerr.Error())
+		case rds.ErrCodeInvalidRestoreFault:
+			fmt.Println(rds.ErrCodeInvalidRestoreFault, aerr.Error())
+		case rds.ErrCodeInvalidSubnet:
+			fmt.Println(rds.ErrCodeInvalidSubnet, aerr.Error())
+		case rds.ErrCodeOptionGroupNotFoundFault:
+			fmt.Println(rds.ErrCodeOptionGroupNotFoundFault, aerr.Error())
+		case rds.ErrCodeDomainNotFoundFault:
+			fmt.Println(rds.ErrCodeDomainNotFoundFault, aerr.Error())
+		case rds.ErrCodeDBClusterParameterGroupNotFoundFault:
+			fmt.Println(rds.ErrCodeDBClusterParameterGroupNotFoundFault, aerr.Error())
+		case rds.ErrCodeInvalidDBInstanceStateFault:
+			fmt.Println(rds.ErrCodeInvalidDBInstanceStateFault, aerr.Error())
 		default:
 			fmt.Println(aerr.Error())
 		}
