@@ -230,7 +230,36 @@ func (rdsCli *RDSClient) ListDBInstances() []*rds.DBInstance {
 	return instances
 }
 
-func (rdsCli *RDSClient) ListClusterSnapshots(clusterID, snapshotType string) []*rds.DBClusterSnapshot {
+func (rdsCli *RDSClient) ListAllDBClusterSnapshots(snapshotType string) []*rds.DBClusterSnapshot {
+	input := &rds.DescribeDBClusterSnapshotsInput{
+		SnapshotType: aws.String(snapshotType),
+	}
+
+	resp, err := rdsCli.cli.DescribeDBClusterSnapshots(input)
+	if err != nil {
+		rdsCli.handleError(err)
+	}
+
+	snapshots := resp.DBClusterSnapshots
+
+	for resp.Marker != nil {
+		input = &rds.DescribeDBClusterSnapshotsInput{
+			SnapshotType: aws.String(snapshotType),
+			Marker:       resp.Marker,
+		}
+
+		resp, err := rdsCli.cli.DescribeDBClusterSnapshots(input)
+		if err != nil {
+			rdsCli.handleError(err)
+		}
+
+		snapshots = append(snapshots, resp.DBClusterSnapshots...)
+	}
+
+	return snapshots
+}
+
+func (rdsCli *RDSClient) ListDBClusterSnapshots(clusterID, snapshotType string) []*rds.DBClusterSnapshot {
 	input := &rds.DescribeDBClusterSnapshotsInput{
 		DBClusterIdentifier: aws.String(clusterID),
 		SnapshotType:        aws.String(snapshotType),
@@ -282,22 +311,14 @@ func (rdsCli *RDSClient) DeleteCluster(clusterID, finalSnapshotID string) *rds.D
 	return result
 }
 
-func (rdsCli *RDSClient) RestoreDClusterFromSnapshot(
-	clusterID, engine, engineVersion, engineMode, snapshotID string) *rds.RestoreDBClusterFromSnapshotOutput {
-	input := &rds.RestoreDBClusterFromSnapshotInput{
-		DBClusterIdentifier: aws.String(clusterID),
-		Engine:              aws.String(engine),
-		EngineMode:          aws.String(engineMode),
-		EngineVersion:       aws.String(engineVersion),
-		SnapshotIdentifier:  aws.String(snapshotID),
-	}
-
-	result, err := rdsCli.cli.RestoreDBClusterFromSnapshot(input)
+func (rdsCli *RDSClient) RestoreDClusterFromSnapshot(input *rds.RestoreDBClusterFromSnapshotInput) *rds.DBCluster {
+	resp, err := rdsCli.cli.RestoreDBClusterFromSnapshot(input)
 	if err != nil {
-		handleError(err)
+		rdsCli.handleError(err)
+		return nil
 	}
 
-	return result
+	return resp.DBCluster
 }
 
 func (rdsCli *RDSClient) handleError(err error) {
@@ -345,6 +366,20 @@ func (rdsCli *RDSClient) handleError(err error) {
 			fmt.Println(rds.ErrCodeDBClusterParameterGroupNotFoundFault, aerr.Error())
 		case rds.ErrCodeInvalidDBInstanceStateFault:
 			fmt.Println(rds.ErrCodeInvalidDBInstanceStateFault, aerr.Error())
+		case rds.ErrCodeInvalidDBClusterStateFault:
+			fmt.Println(rds.ErrCodeInvalidDBClusterStateFault, aerr.Error())
+		case rds.ErrCodeInvalidDBSubnetGroupStateFault:
+			fmt.Println(rds.ErrCodeInvalidDBSubnetGroupStateFault, aerr.Error())
+		case rds.ErrCodeDBClusterNotFoundFault:
+			fmt.Println(rds.ErrCodeDBClusterNotFoundFault, aerr.Error())
+		case rds.ErrCodeDBInstanceNotFoundFault:
+			fmt.Println(rds.ErrCodeDBInstanceNotFoundFault, aerr.Error())
+		case rds.ErrCodeDBSubnetGroupDoesNotCoverEnoughAZs:
+			fmt.Println(rds.ErrCodeDBSubnetGroupDoesNotCoverEnoughAZs, aerr.Error())
+		case rds.ErrCodeGlobalClusterNotFoundFault:
+			fmt.Println(rds.ErrCodeGlobalClusterNotFoundFault, aerr.Error())
+		case rds.ErrCodeInvalidGlobalClusterStateFault:
+			fmt.Println(rds.ErrCodeInvalidGlobalClusterStateFault, aerr.Error())
 		default:
 			fmt.Println(aerr.Error())
 		}
