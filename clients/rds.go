@@ -102,6 +102,25 @@ func (rdsCli *RDSClient) CreateDBInstance(input *rds.CreateDBInstanceInput) *rds
 	return resp.DBInstance
 }
 
+func (rdsCli *RDSClient) DescribeClusterDBInstances(dbClusterID string) []*rds.DBInstance {
+	input := &rds.DescribeDBInstancesInput{
+		Filters: append([]*rds.Filter{},
+			&rds.Filter{
+				Name:   aws.String("db-cluster-id"),
+				Values: []*string{aws.String(dbClusterID)},
+			},
+		),
+	}
+
+	resp, err := rdsCli.cli.DescribeDBInstances(input)
+	if err != nil {
+		rdsCli.handleError(err)
+		return nil
+	}
+
+	return resp.DBInstances
+}
+
 func (rdsCli *RDSClient) DescribeDBInstance(dbInstanceID string) *rds.DBInstance {
 	input := &rds.DescribeDBInstancesInput{
 		DBInstanceIdentifier: aws.String(dbInstanceID),
