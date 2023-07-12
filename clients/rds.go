@@ -92,6 +92,16 @@ func (rdsCli *RDSClient) DeleteClusterSnapshot(snapshotID string) *rds.DeleteDBC
 	return resp
 }
 
+func (rdsCli *RDSClient) CreateDBInstance(input *rds.CreateDBInstanceInput) *rds.DBInstance {
+	resp, err := rdsCli.cli.CreateDBInstance(input)
+	if err != nil {
+		rdsCli.handleError(err)
+		return nil
+	}
+
+	return resp.DBInstance
+}
+
 func (rdsCli *RDSClient) CreateDBSnapshot(instanceID, snapshotID string, tags []*rds.Tag) *rds.DBSnapshot {
 	input := &rds.CreateDBSnapshotInput{
 		DBInstanceIdentifier: aws.String(instanceID),
@@ -380,6 +390,26 @@ func (rdsCli *RDSClient) handleError(err error) {
 			fmt.Println(rds.ErrCodeGlobalClusterNotFoundFault, aerr.Error())
 		case rds.ErrCodeInvalidGlobalClusterStateFault:
 			fmt.Println(rds.ErrCodeInvalidGlobalClusterStateFault, aerr.Error())
+		case rds.ErrCodeDBInstanceAlreadyExistsFault:
+			fmt.Println(rds.ErrCodeDBInstanceAlreadyExistsFault, aerr.Error())
+		case rds.ErrCodeInsufficientDBInstanceCapacityFault:
+			fmt.Println(rds.ErrCodeInsufficientDBInstanceCapacityFault, aerr.Error())
+		case rds.ErrCodeDBParameterGroupNotFoundFault:
+			fmt.Println(rds.ErrCodeDBParameterGroupNotFoundFault, aerr.Error())
+		case rds.ErrCodeDBSecurityGroupNotFoundFault:
+			fmt.Println(rds.ErrCodeDBSecurityGroupNotFoundFault, aerr.Error())
+		case rds.ErrCodeInstanceQuotaExceededFault:
+			fmt.Println(rds.ErrCodeInstanceQuotaExceededFault, aerr.Error())
+		case rds.ErrCodeProvisionedIopsNotAvailableInAZFault:
+			fmt.Println(rds.ErrCodeProvisionedIopsNotAvailableInAZFault, aerr.Error())
+		case rds.ErrCodeStorageTypeNotSupportedFault:
+			fmt.Println(rds.ErrCodeStorageTypeNotSupportedFault, aerr.Error())
+		case rds.ErrCodeAuthorizationNotFoundFault:
+			fmt.Println(rds.ErrCodeAuthorizationNotFoundFault, aerr.Error())
+		case rds.ErrCodeBackupPolicyNotFoundFault:
+			fmt.Println(rds.ErrCodeBackupPolicyNotFoundFault, aerr.Error())
+		case rds.ErrCodeCertificateNotFoundFault:
+			fmt.Println(rds.ErrCodeCertificateNotFoundFault, aerr.Error())
 		default:
 			fmt.Println(aerr.Error())
 		}
