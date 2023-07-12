@@ -102,6 +102,20 @@ func (rdsCli *RDSClient) CreateDBInstance(input *rds.CreateDBInstanceInput) *rds
 	return resp.DBInstance
 }
 
+func (rdsCli *RDSClient) DescribeDBInstance(dbInstanceID string) *rds.DBInstance {
+	input := &rds.DescribeDBInstancesInput{
+		DBInstanceIdentifier: aws.String(dbInstanceID),
+	}
+
+	resp, err := rdsCli.cli.DescribeDBInstances(input)
+	if err != nil {
+		rdsCli.handleError(err)
+		return nil
+	}
+
+	return resp.DBInstances[0]
+}
+
 func (rdsCli *RDSClient) CreateDBSnapshot(instanceID, snapshotID string, tags []*rds.Tag) *rds.DBSnapshot {
 	input := &rds.CreateDBSnapshotInput{
 		DBInstanceIdentifier: aws.String(instanceID),
