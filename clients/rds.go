@@ -135,6 +135,28 @@ func (rdsCli *RDSClient) DescribeDBInstance(dbInstanceID string) *rds.DBInstance
 	return resp.DBInstances[0]
 }
 
+func (rdsCli *RDSClient) DeleteDBInstance(dbInstanceID, finalSnapshotID string, skipFinalSnapshot bool) *rds.DBInstance {
+	input := &rds.DeleteDBInstanceInput{
+		DBInstanceIdentifier:      aws.String(dbInstanceID),
+		FinalDBSnapshotIdentifier: aws.String(finalSnapshotID),
+		SkipFinalSnapshot:         aws.Bool(skipFinalSnapshot),
+	}
+	if skipFinalSnapshot {
+		input = &rds.DeleteDBInstanceInput{
+			DBInstanceIdentifier: aws.String(dbInstanceID),
+			SkipFinalSnapshot:    aws.Bool(skipFinalSnapshot),
+		}
+	}
+
+	resp, err := rdsCli.cli.DeleteDBInstance(input)
+	if err != nil {
+		rdsCli.handleError(err)
+		return nil
+	}
+
+	return resp.DBInstance
+}
+
 func (rdsCli *RDSClient) CreateDBSnapshot(instanceID, snapshotID string, tags []*rds.Tag) *rds.DBSnapshot {
 	input := &rds.CreateDBSnapshotInput{
 		DBInstanceIdentifier: aws.String(instanceID),
